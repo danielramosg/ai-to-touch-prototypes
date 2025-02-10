@@ -1,36 +1,42 @@
 <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="UTF-8">
+<html>
+  <head>
+    <meta charset="UTF-8" />
 
-        <title>Unsupervised learning</title>
-        <link rel="stylesheet" href="unsupervised-style.css">
-        <script type="text/javascript" src="../../common/js/Cindy.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.0.0/dist/tf.min.js"></script>
-        <script src="simple-tf-network-plugin.js"></script>
-        <script src="../../common/js/url-parameters.js"></script>
+    <title>Unsupervised learning</title>
+    <link rel="stylesheet" href="unsupervised-style.css" />
+    <script type="text/javascript" src="../../common/js/Cindy.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.0.0/dist/tf.min.js"></script>
+    <script src="simple-tf-network-plugin.js"></script>
+    <script src="../../common/js/url-parameters.js"></script>
 
-      <script id="csinit" type="text/x-cindyscript">
+    <script id="csinit" type="text/x-cindyscript">
 
       relativepoint(x) := [
           (screenbounds()_4).x * (1-x_1) + (screenbounds()_2).x * (x_1),
           (screenbounds()_4).y * (1-x_2) + (screenbounds()_2).y * (x_2)
         ];
 
-      //nn
+      // Neural Network (nn)
+      // Number of neurons on each layer
         N = [4, 6, 2];
+
+      // Weights & biases
         W = [
-          apply(1..N_1, apply(1..N_2, 0)),
-          apply(1..N_2, 0),
-          apply(1..N_2, apply(1..N_3, 0)),
-          apply(1..N_3, 0)
+          apply(1..N_1, apply(1..N_2, 0)), // Matrix connecting layer 1 and 2
+          apply(1..N_2, 0), // Weights of layer 2
+          apply(1..N_2, apply(1..N_3, 0)), // Matrix connecting layer 2 and 3
+          apply(1..N_3, 0) // Weights of layer 3
         ];
 
+      // Position of neuron j of layer k in the diagram
         pos(k, j) := (
           (k-2)*5,-3*(j-(N_k+1)/2)/sqrt(N_k)
         );
 
+
         computing = false;
+
       //reset nn and history of saved observations
       resethistory():=(
         forall(1..5,k,
@@ -41,236 +47,210 @@
         xs = [];
         ys = [];
         cnt = 0;
-        //xs = [[1,0,0,0],[0,1,0,0]];
-        //ys = [[1,0],[0,1]];
-        //xs = [[1,1,1,1],[1,1,1,1]];
-        //ys = [[1,0],[0,1]];
         resetweights();
         ncorrect = nfalse = nstrike = 0;
 
       );
       resethistory();
 
+      ncorrect = nfalse = nstrike = 0;
 
+      // tN are random parameters
+      // x is a parameters vector encoding some variables for each level, they are computed from tN in getx()
+      //
 
-    /*
-        //level 1
-        n = 30;
-        v0 = (0,0);
-        hist = apply(1..n, (0,0));
-        v1 = (randomnormal(),randomnormal());
+      generaterandomx() := (
+        t0 = random(1000);
+        t1 = random(500);
+        t2 = random(1000);
+        t3 = random(500);
+        t4 = random(500);
+        t5 = random(500);
+        getx()
+      );
 
-        p = (0,0);
-        dt = 0;
-        lastseconds = 0;
-*/
+      // button1 and button2 trigger the click() function,
+      // button1 calls click(false)
+      // button2 calls click(true)
 
-        ncorrect = nfalse = nstrike = 0;
+      // For each parameter vector x, answer(x) returns
+      // false if button1 has the correct answer, and
+      // true if button2 has the correct answer.
 
-        generaterandomx() := (
-          t0 = random(1000);
-          t1 = random(500);
-          t2 = random(1000);
-          t3 = random(500);
-          t4 = random(500);
-          t5 = random(500);
-          getx()
+      click(ans) := (
+        if(t9()>1,
+          x = getx();
+          if(answer(x) == ans, correct(), incorrect());
+        );
+        javascript("hide([1,2])");
+        reset9();
+      );
+
+      // tN() = time since tN, in seconds
+      // resetN() resets the variable tN to current time.
+      // tN is initialised to current time (for all N)
+      forall(0..9,k,
+        parse("t"+k+"() := ( seconds()-t"+k+";);reset"+k+"() := (t"+k+" = seconds();); t"+k+" = seconds();");
+      );
+
+      lt0 = t0;
+
+      msg = "";
+
+      // handle a correct answer
+      correct() := (
+        ncorrect = ncorrect + 1;
+        nstrike = nstrike + 1;
+        if(mode=="user",
+          playsin(440*2^(nstrike/12), damp->4, line->2, amp->.2);
         );
 
-        click(ans) := (
-          if(t9()>1,
-            x = getx();
-            if(answer(x) == ans, correct(), incorrect());
-          );
-          javascript("hide([1,2])");
-          reset9();
+
+        msg = "your answer was correct " + ["😃","😄","😀","😁","🙃","😊","🤗"]_(randomint(7)+1);
+        if(nstrike > 1,
+          msg = msg + newline + "("
+          + if(nstrike<=6,
+              ["first","second","third","fourth","fifth","sixth"]_nstrike,
+              if(nstrike + if(mod(nstrike, 10)==1 & nstrike!=11, "st", if(mod(nstrike, 10)==2 & nstrike!=12, "nd", if(mod(nstrike, 10)==3 & nstrike!=13, "rd", "th")))))
+          + " time)" + newline
+          + "Can you make " + if(required<=9,["one", "two", "three", "four", "five", "six", "seven", "eigth", "nine", "ten"]_required, required)+ " correct guesses in a row?";
         );
 
-        forall(0..9,k,
-          parse("t"+k+"() := ( seconds()-t"+k+";);reset"+k+"() := (t"+k+" = seconds();); t"+k+" = seconds();");
-        );
-        lt0 = t0;
-
-        msg = "";
-
-        correct() := (
-          ncorrect = ncorrect + 1;
-          nstrike = nstrike + 1;
-          if(mode=="user",
-            playsin(440*2^(nstrike/12), damp->4, line->2, amp->.2);
-          );
-
-
-          msg = "your answer was correct " + ["😃","😄","😀","😁","🙃","😊","🤗"]_(randomint(7)+1);
-          if(nstrike > 1,
-            msg = msg + newline + "("
-            + if(nstrike<=6,["first","second","third","fourth","fifth","sixth"]_nstrike,
-                if(nstrike + if(mod(nstrike, 10)==1 & nstrike!=11, "st", if(mod(nstrike, 10)==2 & nstrike!=12, "nd", if(mod(nstrike, 10)==3 & nstrike!=13, "rd", "th")))))
-            + " time)" + newline
-            + "Can you make " + if(required<=9,["one", "two", "three", "four", "five", "six", "seven", "eigth", "nine", "ten"]_required, required)+ " correct guesses in a row?";
-          );
-
-          if(nstrike>=required & mode=="user",
-            msg = "";
-            mode = "menu";
-            javascript("hide([1,2,3]); show([3,4,5]); movecenter([3,4,5]);");
-          );
-
-          reset9();
-        );
-
-        restart() := (
-          resetclock();
-          javascript("hide([3,4,5]); show([1,2])");
-          if(level==1,
-              labels = ["biru", "merah"];//blue  red in Indonesian
-          );
-          if(level==2,
-              labels = ["kiri", "kanan"];//left right in Indonesian
-          );
-          if(level==3,
-              labels = ["genap", "gasal"];//even odd in Indonesian
-          );
-          javascript("setlabels(['"+labels_1+"','"+labels_2+"'])");
-          required = geturlparameter("required", 4);
-          lt3 = t3();
-          ncorrect = nstrike = nfalse = 0;
-          reset0();reset1();reset2();reset9();
+        if(nstrike>=required & mode=="user",
           msg = "";
-          mode = "user";
+          mode = "menu";
+          javascript("hide([1,2,3]); show([3,4,5]); movecenter([3,4,5]);");
         );
 
-        nextlevel() := (
-          level = mod(level,3) + 1;
-          resethistory();
-          restart();
-        );
+        reset9();
+      );
 
-        usecomputer() := (
-          javascript("hide([1,2,5]); show([3,4]); moveright([3,4]);");
-          resethistory();
-          //required = 8;
-          reset7();
-          reset8();
-          reset9();
-          mode = "computer";
+      // handle an incorrect answer
+      incorrect() := (
+        msg = "your answer was not correct " + ["😢","🙄","😕","😮","😞"]_(randomint(5)+1);
+        if(mode=="user",
+          playsin(440*2^(-5/12), damp->4, line->2, amp->.1);
         );
+        nstrike = 0;
+        nfalse = nfalse + 1;
+      );
 
-        incorrect() := (
-          msg = "your answer was not correct " + ["😢","🙄","😕","😮","😞"]_(randomint(5)+1);
-          if(mode=="user",
-            playsin(440*2^(-5/12), damp->4, line->2, amp->.1);
+      restart() := (
+        resetclock();
+        javascript("hide([3,4,5]); show([1,2])");
+        if(level==1,
+            labels = ["biru", "merah"];//blue  red in Indonesian
+        );
+        if(level==2,
+            labels = ["kiri", "kanan"];//left right in Indonesian
+        );
+        if(level==3,
+            labels = ["genap", "gasal"];//even odd in Indonesian
+        );
+        javascript("setlabels(['"+labels_1+"','"+labels_2+"'])");
+        required = geturlparameter("required", 4);
+        lt3 = t3();
+        ncorrect = nstrike = nfalse = 0;
+        reset0();reset1();reset2();reset9();
+        msg = "";
+        mode = "user";
+      );
+
+      nextlevel() := (
+        level = mod(level,3) + 1;
+        resethistory();
+        restart();
+      );
+
+      usecomputer() := (
+        javascript("hide([1,2,5]); show([3,4]); moveright([3,4]);");
+        resethistory();
+        //required = 8;
+        reset7();
+        reset8();
+        reset9();
+        mode = "computer";
+      );
+
+
+
+      randomint = 3;
+      dir = randomnormal();
+
+
+
+      getx() := (
+        regional(x);
+        if(level==1,
+          cval = if(mod(t0()/2,2)>1,1,0);
+          x = hue(cval*sqrt(3)) ++ [mod(t0()/2,1)];
+        );
+        if(level==2,
+          x = 4*[sin(t3()/2), cos(t3())]++4*[sin(t3()),cos(t3()/1.1234)];
+        );
+        if(level==3,
+          if(floor(t0()/2)!=floor(lt0/2),
+            randomint = 2+randomint(4);//round(2+2*|randomnormal()|);
+            dir = randomnormal();
           );
-          nstrike = 0;
-          nfalse = nfalse + 1;
+          lt0 = t0();
+          x = [randomint/8, dir, mod(t0()/2,1), mod(randomint*0.43+.3,1)];
         );
-        randomint = 3;
-        dir = randomnormal();
+        x
+      );
 
+      answer(x) := (
+        regional(ans);
+        if(level==1,
+          ans = (|x_[1,2,3]-hue(0)|<.1);
+        );
+        if(level==2,
+          ans = ((x_1-x_3)>0);
+        );
+        if(level==3,
+          randomint = x_1*8;
+          ans = mod(randomint,2)==1;
+        );
+        ans
+      );
 
-
-        getx() := (
-          regional(x);
+      // draw the case given by parameters x
+      drawit(x):= (
           if(level==1,
-            cval = if(mod(t0()/2,2)>1,1,0);
-            x = hue(cval*sqrt(3)) ++ [mod(t0()/2,1)];
+            fillcircle((0,0),4*x_4+1, alpha->1-(x_4-.5)^2*4, color->x_[1,2,3]);
           );
+
           if(level==2,
-            /*
-            v = t0()*v1+(1-t0())*v0;
-            dt = t3();
-            reset3();
-            if(|p|>6,p=p/|p|*6);//bound
-            p = p+v*dt;
-            hist = [p] ++ hist_(1..(n-1));
-            errc(hist);
-            if(t0()>1,
-              reset0();
-              v0 = v1;
-              v1 = -p+4*(randomnormal(),randomnormal());
-              if(|v1|>6, v1 = 6*v1/|v1|); //limit speed
-            );*/
-            //x = hist_(1) ++ hist_(-1);
-            x = 4*[sin(t3()/2), cos(t3())]++4*[sin(t3()),cos(t3()/1.1234)]
-
-          );
-          if(level==3,
-            //if(t0()>2,
-            if(floor(t0()/2)!=floor(lt0/2),
-              randomint = 2+randomint(4);//round(2+2*|randomnormal()|);
-
-              dir = randomnormal();
+            draw(x_[1,2], x_[3,4], color->[.5,.5,.5],size->10);
+            fillcircle(x_[3,4], color->[1,1,1], 1.5);
+            fillcircle(x_[3,4], color->[.3,.2,.4], 1.4);
+            fillcircle(x_[1,2], color->[1,1,1], 1.5);
+            fillcircle(x_[1,2], color->[.5,1,.1], 1.4);
+            if(mode=="user",
+              //  x = 4*[sin(t3()/2), cos(t3())]++4*[sin(t3()),cos(t3()/1.1234)]
+              v1 = |[cos(t3()/2)/2, sin(t3())]|;
+              v2 = |[cos(t3()),sin(t3()/1.1234)/1.1234]|;
+              playsin(300*v1, line->"x12", amp->.1);
+              playsin(300*v2, line->"x34", amp->.1);
             );
-            lt0 = t0();
-              //reset0();
-            //);
-            x = [randomint/8, dir, mod(t0()/2,1), mod(randomint*0.43+.3,1)];
-          );
-          x
-        );
-        answer(x) := (
-          regional(ans);
-          if(level==1,
-            ans = (|x_[1,2,3]-hue(0)|<.1);
-          );
-          if(level==2,
-            ans = ((x_1-x_3)>0);
+
           );
           if(level==3,
             randomint = x_1*8;
-            ans = mod(randomint,2)==1;
+            param = x_3;
+            dir = x_2;
+            forall(0..randomint, k,
+              //param =t0()/2;
+              draw((2+param)*gauss(exp(2*pi*i*k/randomint+i*dir*.7*(param+10))), alpha->1-.9*(param-.5)^2*4, color->hue(x_4), size->30);
+            );
           );
-          ans
-        );
-        drawit(x):= (
-            if(level==1,
-              fillcircle((0,0),4*x_4+1, alpha->1-(x_4-.5)^2*4, color->x_[1,2,3]);
-            );
-            if(level==2,
-              /*al = 1;
-              forall(hist, p,
-                draw(p, size->20, alpha->.2*al);
-                al = al*.95;
-              );
+      );
 
-              draw(p, size->20);
-              lastseconds = seconds();
-              playsin(100*|v|, amp->.1);*/
-
-              draw(x_[1,2], x_[3,4], color->[.5,.5,.5],size->10);
-              fillcircle(x_[3,4], color->[1,1,1], 1.5);
-              fillcircle(x_[3,4], color->[.3,.2,.4], 1.4);
-              fillcircle(x_[1,2], color->[1,1,1], 1.5);
-              fillcircle(x_[1,2], color->[.5,1,.1], 1.4);
-              if(mode=="user",
-                //  x = 4*[sin(t3()/2), cos(t3())]++4*[sin(t3()),cos(t3()/1.1234)]
-                v1 = |[cos(t3()/2)/2, sin(t3())]|;
-                v2 = |[cos(t3()),sin(t3()/1.1234)/1.1234]|;
-                playsin(300*v1, line->"x12", amp->.1);
-                playsin(300*v2, line->"x34", amp->.1);
-              );
-
-
-            );
-            if(level==3,
-              randomint = x_1*8;
-              param = x_3;
-              dir = x_2;
-              forall(0..randomint, k,
-                //param =t0()/2;
-                draw((2+param)*gauss(exp(2*pi*i*k/randomint+i*dir*.7*(param+10))), alpha->1-.9*(param-.5)^2*4, color->hue(x_4), size->30);
-              );
-            );
-        );
-
-        //applet
-          level = geturlparameter("level", 1);
-          restart();
-
-
-
-      </script>
-      <script id="csdraw" type="text/x-cindyscript">
+      //applet
+        level = geturlparameter("level", 1);
+        restart();
+    </script>
+    <script id="csdraw" type="text/x-cindyscript">
 
       if(mode!="menu",
         rp = relativepoint((0.3,.9));
@@ -358,14 +338,19 @@
           //make some guess for the image based on nn
           predict([x],
             y = #_1;
-            //computerguess(y);
-            computerguess_cimgcnt = if(y_1>.5, labels_1, labels_2) + "  " + if((y_1>.5) == answer(x),"✔","✗");
-            if((y_1>.5) == answer(x), correct(), incorrect());
-            /*clearimage("cimg"+cimgcnt);
-            canvas((-16,-9)/scale,(16,-9)/scale,"cimg"+cimgcnt,
-                fillcircle((0,0),5, color->if((y_1>.5) == answer(x),[0,1,0],[1,0,0]), alpha->.3);
-                drawit(x);
-            );*/
+            computerguess_cimgcnt =
+            if(y_1>.5,
+                labels_1,
+                labels_2)
+            + "  "
+            + if((y_1>.5) == answer(x),
+                "✔",
+                "✗");
+
+            if((y_1>.5) == answer(x),
+                correct(),
+                incorrect());
+
 
             //add correct answer to training data
             xs = xs :> x;
@@ -397,62 +382,95 @@
           );
         );
       );
-
-
-      </script>
-    </head>
-    <body>
-      <div id="container">
-        <div id="CSCanvas"></div>
-        <div id="button1" class="visible button" onclick="cdy.evokeCS('click(false)')">ya</div>
-        <div id="button2" class="visible button" onclick="cdy.evokeCS('click(true)')">tidak</div>
-
-        <div id="button3" class="hidden button center" onclick="cdy.evokeCS('restart()')">restart</div>
-        <div id="button4" class="hidden button center" onclick="cdy.evokeCS('nextlevel()')">proceed to next level</div>
-        <div id="button5" class="hidden button center" onclick="cdy.evokeCS('usecomputer()')">how the computer would learn?</div>
-      </div>
-    </body>
-    <script type="text/javascript">
-      var cdy = CindyJS({
-        scripts: "cs*",
-        ports: [
-          {id: "CSCanvas", transform: [{visibleRect: [-16, -9, 16, 9]}], virtualwidth: 1000}
-        ],
-        use: ["simple-tf-network-plugin", "url-parameters"],
-        autoplay: true
-      });
-
-      function setlabels(labels) {
-        document.getElementById("button1").innerHTML = labels[0];
-        document.getElementById("button2").innerHTML = labels[1];
-      }
-      function hide(l) {
-        for(k in l){
-          document.getElementById("button"+l[k]).classList.remove("visible");
-          document.getElementById("button"+l[k]).classList.add("hidden");
-        }
-      }
-
-      function show(l) {
-        for(k in l){
-          document.getElementById("button"+l[k]).classList.remove("hidden");
-          document.getElementById("button"+l[k]).classList.add("visible");
-        }
-      }
-
-      function movecenter(l) {
-        for(k in l){
-          document.getElementById("button"+l[k]).classList.remove("right");
-          document.getElementById("button"+l[k]).classList.add("center");
-        }
-      }
-
-      function moveright(l) {
-        for(k in l){
-          document.getElementById("button"+l[k]).classList.remove("center");
-          document.getElementById("button"+l[k]).classList.add("right");
-        }
-      }
-
     </script>
-    </html>
+  </head>
+  <body>
+    <div id="container">
+      <div id="CSCanvas"></div>
+      <div
+        id="button1"
+        class="visible button"
+        onclick="cdy.evokeCS('click(false)')"
+      >
+        ya
+        <!-- "yes" in Indonesian -->
+      </div>
+      <div
+        id="button2"
+        class="visible button"
+        onclick="cdy.evokeCS('click(true)')"
+      >
+        tidak
+        <!-- "no" in Indonesian -->
+      </div>
+
+      <div
+        id="button3"
+        class="hidden button center"
+        onclick="cdy.evokeCS('restart()')"
+      >
+        restart
+      </div>
+      <div
+        id="button4"
+        class="hidden button center"
+        onclick="cdy.evokeCS('nextlevel()')"
+      >
+        proceed to next level
+      </div>
+      <div
+        id="button5"
+        class="hidden button center"
+        onclick="cdy.evokeCS('usecomputer()')"
+      >
+        how the computer would learn?
+      </div>
+    </div>
+  </body>
+  <script type="text/javascript">
+    var cdy = CindyJS({
+      scripts: "cs*",
+      ports: [
+        {
+          id: "CSCanvas",
+          transform: [{ visibleRect: [-16, -9, 16, 9] }],
+          virtualwidth: 1000,
+        },
+      ],
+      use: ["simple-tf-network-plugin", "url-parameters"],
+      autoplay: true,
+    });
+
+    function setlabels(labels) {
+      document.getElementById("button1").innerHTML = labels[0];
+      document.getElementById("button2").innerHTML = labels[1];
+    }
+    function hide(l) {
+      for (k in l) {
+        document.getElementById("button" + l[k]).classList.remove("visible");
+        document.getElementById("button" + l[k]).classList.add("hidden");
+      }
+    }
+
+    function show(l) {
+      for (k in l) {
+        document.getElementById("button" + l[k]).classList.remove("hidden");
+        document.getElementById("button" + l[k]).classList.add("visible");
+      }
+    }
+
+    function movecenter(l) {
+      for (k in l) {
+        document.getElementById("button" + l[k]).classList.remove("right");
+        document.getElementById("button" + l[k]).classList.add("center");
+      }
+    }
+
+    function moveright(l) {
+      for (k in l) {
+        document.getElementById("button" + l[k]).classList.remove("center");
+        document.getElementById("button" + l[k]).classList.add("right");
+      }
+    }
+  </script>
+</html>

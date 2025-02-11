@@ -20,7 +20,7 @@ let nfalse = 0;
 let ncorrect = 0;
 let required = 4; //TO DO: this parameter should be passed by url
 let mode = "user"; // "menu" || "user" || "computer"
-let level = 3; // 1 || 2 || 3   //TO DO: this parameter should be passed by url
+let level = 1; // 1 || 2 || 3   //TO DO: this parameter should be passed by url
 let labels = [];
 let computing = false;
 
@@ -83,7 +83,7 @@ const click = (ans) => {
     console.log("answer:", answer(x));
     answer(x) === ans ? correct() : incorrect();
   }
-  //   hide([1, 2]);
+  hide([1, 2]);
   reset[9]();
 };
 
@@ -100,7 +100,7 @@ const correct = () => {
   if (nstrike > 1) {
     msg =
       msg +
-      `\n(${ordinal(nstrike)} time)
+      ` (${ordinal(nstrike)} time) <br>
       Can you make ${cardinal(required)} correct guesses in a row?`;
   }
 
@@ -111,6 +111,7 @@ const correct = () => {
     show([3, 4, 5]);
     movecenter([3, 4, 5]);
   }
+  document.getElementById("result").innerHTML = msg;
   reset[9]();
   updateInfoLevel(
     level,
@@ -127,6 +128,8 @@ const incorrect = () => {
   // if(mode=="user",
   //   playsin(440*2^(-5/12), damp->4, line->2, amp->.1);
   // );
+  document.getElementById("result").innerHTML = msg;
+
   nstrike = 0;
   nfalse += 1;
   updateInfoLevel(
@@ -371,7 +374,15 @@ updateInfoLevel(
 const mainAnimation = () => {
   if (mode === "user") {
     drawIt(getX());
+
+    if (elapsed[9]() < 2) {
+      const a = (2 - elapsed[9]()) / 2;
+      document.getElementById("result").style.opacity = a;
+    }
+
+    if (elapsed[9]() > 1) show([1, 2]);
   }
+
   if (mode === "menu") {
     drawIt(getX());
   }

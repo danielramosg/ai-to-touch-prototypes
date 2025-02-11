@@ -20,7 +20,7 @@ let nfalse = 0;
 let ncorrect = 0;
 let required = 4; //TO DO: this parameter should be passed by url
 let mode = "user"; // "menu" || "user" || "computer"
-let level = 1; // 1 || 2 || 3   //TO DO: this parameter should be passed by url
+let level = 2; // 1 || 2 || 3   //TO DO: this parameter should be passed by url
 let labels = [];
 
 // Neural Network (nn)
@@ -75,7 +75,7 @@ const generateRandomX = () => {
  * @param ans boolean which is false for button1 and true for button2
  */
 const click = (ans) => {
-  console.log("click", ans);
+  console.log("click:", ans);
   if (elapsed[9]() > 1) {
     const x = getX();
     console.log("x:", x);
@@ -110,8 +110,13 @@ const correct = () => {
     show([3, 4, 5]);
     movecenter([3, 4, 5]);
   }
-
   reset[9]();
+  updateInfoLevel(
+    level,
+    ncorrect,
+    nfalse,
+    nstrike.toString().concat(mode === "user" ? `/${required}` : ``)
+  );
 };
 
 /** Handle an incorrect answer */
@@ -123,6 +128,12 @@ const incorrect = () => {
   // );
   nstrike = 0;
   nfalse += 1;
+  updateInfoLevel(
+    level,
+    ncorrect,
+    nfalse,
+    nstrike.toString().concat(mode === "user" ? `/${required}` : ``)
+  );
 };
 
 /** Computer guesses, as array of strings.
@@ -246,8 +257,6 @@ const getX = () => {
  */
 const answer = (x) => {
   if (level === 1) {
-    console.log(x);
-    console.log();
     return distVec([x[0], x[1], x[2]], hslToRgb(0, 100, 50)) < 0.1;
     //   ans = (|x_[1,2,3]-hue(0)|<.1);
   }
@@ -277,6 +286,42 @@ const drawIt = (x) => {
     ctx.arc(250, 250, 150 * x[3] + 20, 0, 2 * Math.PI);
     ctx.fill();
   }
+
+  if (level === 2) {
+    ctx.clearRect(0, 0, 500, 500);
+    ctx.setTransform(40, 0, 0, 40, 250, 250);
+
+    ctx.lineWidth = 0.3;
+    ctx.strokeStyle = "grey";
+    ctx.beginPath();
+    ctx.moveTo(x[0], x[1]);
+    ctx.lineTo(x[2], x[3]);
+    ctx.stroke();
+
+    ctx.lineWidth = 0.1;
+    ctx.strokeStyle = "white";
+    ctx.fillStyle = "rgb(30%,20%,40%)";
+    ctx.beginPath();
+    ctx.arc(x[0], x[1], 1.3, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = "rgb(50%,100%,10%)";
+    ctx.beginPath();
+    ctx.arc(x[2], x[3], 1.3, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+    // if(mode=="user",
+    //     //  x = 4*[sin(t3()/2), cos(t3())]++4*[sin(t3()),cos(t3()/1.1234)]
+    //     v1 = |[cos(t3()/2)/2, sin(t3())]|;
+    //     v2 = |[cos(t3()),sin(t3()/1.1234)/1.1234]|;
+    //     playsin(300*v1, line->"x12", amp->.1);
+    //     playsin(300*v2, line->"x34", amp->.1);
+    //   );
+  }
 };
 
 resethistory();
@@ -288,8 +333,18 @@ document.getElementById("button3").onclick = restart;
 document.getElementById("button4").onclick = nextlevel;
 document.getElementById("button5").onclick = usecomputer;
 
+updateInfoLevel(
+  level,
+  ncorrect,
+  nfalse,
+  nstrike.toString().concat(mode === "user" ? `/${required}` : ``)
+);
+
 const mainAnimation = () => {
   if (mode === "user") {
+    drawIt(getX());
+  }
+  if (mode === "menu") {
     drawIt(getX());
   }
   requestAnimationFrame(mainAnimation);

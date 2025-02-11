@@ -1,51 +1,76 @@
 /* quicksand-regular - latin */
 @font-face {
-  font-family: 'Quicksand';
+  font-family: "Quicksand";
   font-style: normal;
   font-weight: 400;
-  src: url('../../common/quicksand/quicksand-v9-latin-regular.eot');
+  src: url("../../common/quicksand/quicksand-v9-latin-regular.eot");
   /* IE9 Compat Modes */
-  src: local('Quicksand Regular'), local('Quicksand-Regular'),
-    url('../../common/quicksand/quicksand-v9-latin-regular.eot?#iefix') format('embedded-opentype'),
-    /* IE6-IE8 */
-    url('../../common/quicksand/quicksand-v9-latin-regular.woff2') format('woff2'),
+  src: local("Quicksand Regular"), local("Quicksand-Regular"),
+    url("../../common/quicksand/quicksand-v9-latin-regular.eot?#iefix")
+      format("embedded-opentype"),
+    /* IE6-IE8 */ url("../../common/quicksand/quicksand-v9-latin-regular.woff2")
+      format("woff2"),
     /* Super Modern Browsers */
-    url('../../common/quicksand/quicksand-v9-latin-regular.woff') format('woff'),
+      url("../../common/quicksand/quicksand-v9-latin-regular.woff")
+      format("woff"),
     /* Modern Browsers */
-    url('../../common/quicksand/quicksand-v9-latin-regular.ttf') format('truetype'),
+      url("../../common/quicksand/quicksand-v9-latin-regular.ttf")
+      format("truetype"),
     /* Safari, Android, iOS */
-    url('../../common/quicksand/quicksand-v9-latin-regular.svg#Quicksand') format('svg');
+      url("../../common/quicksand/quicksand-v9-latin-regular.svg#Quicksand")
+      format("svg");
   /* Legacy iOS */
 }
 
 /* quicksand-700 - latin */
 @font-face {
-  font-family: 'Quicksand';
+  font-family: "Quicksand";
   font-style: normal;
   font-weight: 700;
-  src: url('../../common/quicksand/quicksand-v9-latin-700.eot');
+  src: url("../../common/quicksand/quicksand-v9-latin-700.eot");
   /* IE9 Compat Modes */
-  src: local('Quicksand Bold'), local('Quicksand-Bold'),
-    url('../../common/quicksand/quicksand-v9-latin-700.eot?#iefix') format('embedded-opentype'),
-    /* IE6-IE8 */
-    url('../../common/quicksand/quicksand-v9-latin-700.woff2') format('woff2'),
+  src: local("Quicksand Bold"), local("Quicksand-Bold"),
+    url("../../common/quicksand/quicksand-v9-latin-700.eot?#iefix")
+      format("embedded-opentype"),
+    /* IE6-IE8 */ url("../../common/quicksand/quicksand-v9-latin-700.woff2")
+      format("woff2"),
     /* Super Modern Browsers */
-    url('../../common/quicksand/quicksand-v9-latin-700.woff') format('woff'),
+      url("../../common/quicksand/quicksand-v9-latin-700.woff") format("woff"),
     /* Modern Browsers */
-    url('../../common/quicksand/quicksand-v9-latin-700.ttf') format('truetype'),
+      url("../../common/quicksand/quicksand-v9-latin-700.ttf")
+      format("truetype"),
     /* Safari, Android, iOS */
-    url('../../common/quicksand/quicksand-v9-latin-700.svg#Quicksand') format('svg');
+      url("../../common/quicksand/quicksand-v9-latin-700.svg#Quicksand")
+      format("svg");
   /* Legacy iOS */
 }
 
 body {
-    font-family: Quicksand, Helvetica, Arial, sans-serif;
-    margin: 0px;
-    padding: 0px;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgb(10, 0, 30);
-    font-size: 3vw;
+  font-family: Quicksand, Helvetica, Arial, sans-serif;
+  margin: 0px;
+  padding: 0px;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgb(10, 0, 30);
+  font-size: 3vw;
+}
+
+#infoLevel {
+  position: fixed;
+  font-size: 0.6em;
+  color: white;
+
+  top: 1.5em;
+  left: 3em;
+}
+
+#infoLevel table {
+  td {
+    padding-right: 0.5em;
+  }
+  td:first-child {
+    text-align: right;
+  }
 }
 
 #CSCanvas {
@@ -57,16 +82,15 @@ body {
     position: absolute;
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);*/
-    width: 100vw;
-    height: 100vh;
-    z-index: -10;
-    pointer-events: none;
-    /*filter: invert(1);*/
+  width: 100vw;
+  height: 100vh;
+  z-index: -10;
+  pointer-events: none;
+  /*filter: invert(1);*/
 }
 
-
-.button{
-  background-color: rgba(100,100,100,.4);
+.button {
+  background-color: rgba(100, 100, 100, 0.4);
   border: 0.1em solid white;
   border-radius: 5px;
   color: white;
@@ -78,7 +102,7 @@ body {
 }
 
 .button:hover {
-  background-color: rgba(100,100,100,.8);
+  background-color: rgba(100, 100, 100, 0.8);
 }
 
 #button1 {
@@ -116,10 +140,10 @@ body {
 .visible {
   visibility: visible;
   opacity: 1;
-  transition: opacity .3s linear;
+  transition: opacity 0.3s linear;
 }
 .hidden {
   visibility: hidden;
   opacity: 0;
-  transition: visibility 0s .3s, opacity .3s linear;
+  transition: visibility 0s 0.3s, opacity 0.3s linear;
 }

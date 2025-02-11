@@ -87,6 +87,13 @@ const distVec = (u, v) => {
   return Math.sqrt(normSquare);
 };
 
+const updateInfoLevel = (level, correct, incorrect, correctRow) => {
+  document.getElementById("levelLabel").innerHTML = level;
+  document.getElementById("correctLabel").innerHTML = correct;
+  document.getElementById("incorrectLabel").innerHTML = incorrect;
+  document.getElementById("correctRowLabel").innerHTML = correctRow;
+};
+
 export {
   ordinal,
   cardinal,
@@ -98,4 +105,5 @@ export {
   gaussianRandom,
   hslToRgb,
   distVec,
+  updateInfoLevel,
 };

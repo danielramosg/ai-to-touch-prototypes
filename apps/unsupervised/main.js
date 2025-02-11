@@ -9,7 +9,8 @@ import {
   gaussianRandom,
   hslToRgb,
   distVec,
-} from "./helpers";
+  updateInfoLevel,
+} from "./helpers.js";
 
 let msg = "";
 let nstrike = 0;
@@ -130,8 +131,8 @@ const computerguess = new Array(5).fill("");
 let cimg = new Array(5).fill(null);
 
 //training data
-const xs = [];
-const ys = [];
+let xs = [];
+let ys = [];
 
 let cimgcnt = 0;
 let cnt = 0;

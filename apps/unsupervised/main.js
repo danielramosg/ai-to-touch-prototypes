@@ -20,8 +20,9 @@ let nfalse = 0;
 let ncorrect = 0;
 let required = 4; //TO DO: this parameter should be passed by url
 let mode = "user"; // "menu" || "user" || "computer"
-let level = 2; // 1 || 2 || 3   //TO DO: this parameter should be passed by url
+let level = 3; // 1 || 2 || 3   //TO DO: this parameter should be passed by url
 let labels = [];
+let computing = false;
 
 // Neural Network (nn)
 /** Number of neurons on each layer */
@@ -321,6 +322,33 @@ const drawIt = (x) => {
     //     playsin(300*v1, line->"x12", amp->.1);
     //     playsin(300*v2, line->"x34", amp->.1);
     //   );
+  }
+
+  if (level === 3) {
+    // console.log(x);
+    const randomint = x[0] * 8;
+    const param = x[2];
+    const dir = x[1];
+
+    ctx.clearRect(0, 0, 500, 500);
+    ctx.setTransform(40, 0, 0, 40, 250, 250);
+    ctx.fillStyle = `hsla(${x[3] * 360},100%,50%,${
+      1 - 0.9 * 4 * (param - 0.5) * (param - 0.5)
+    })`;
+
+    for (let k = 0; k < randomint; k += 1) {
+      const xx =
+        (2 + param) *
+        Math.cos((2 * Math.PI * k) / randomint + dir * 0.7 * (param + 10));
+      const yy =
+        (2 + param) *
+        Math.sin((2 * Math.PI * k) / randomint + dir * 0.7 * (param + 10));
+
+      ctx.beginPath();
+      ctx.arc(xx, yy, 0.9, 0, 2 * Math.PI);
+      ctx.fill();
+    }
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
   }
 };
 

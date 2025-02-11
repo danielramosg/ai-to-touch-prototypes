@@ -19,7 +19,7 @@ let nstrike = 0;
 let nfalse = 0;
 let ncorrect = 0;
 let required = 4; //TO DO: this parameter should be passed by url
-let mode = ""; // "menu" || "user" || "computer"
+let mode = "user"; // "menu" || "user" || "computer"
 let level = 1; // 1 || 2 || 3   //TO DO: this parameter should be passed by url
 let labels = [];
 
@@ -58,7 +58,7 @@ const reset = new Array(10).fill().map((e, i) => () => {
  */
 const elapsed = new Array(10)
   .fill()
-  .map((e, i) => () => 1000 * (performance.now() - t[i]));
+  .map((e, i) => () => (performance.now() - t[i]) / 1000);
 
 /** Set the timers to random values and get new input X */
 const generateRandomX = () => {
@@ -77,10 +77,12 @@ const generateRandomX = () => {
 const click = (ans) => {
   console.log("click", ans);
   if (elapsed[9]() > 1) {
-    x = getX();
+    const x = getX();
+    console.log("x:", x);
+    console.log("answer:", answer(x));
     answer(x) === ans ? correct() : incorrect();
   }
-  hide([1, 2]);
+  //   hide([1, 2]);
   reset[9]();
 };
 
@@ -211,7 +213,7 @@ const getX = () => {
     const cval = (elapsed[0]() / 2) % 2 > 1 ? 1 : 0; // switch every two seconds from 0 to 1
     const hue = cval * 263.5; // 265.5 deg = 0.73 * 360 deg
     const alpha = (elapsed[0]() / 2) % 1; // alpha ranges from 0 to 1 every two seconds
-    x = hslToRgb(hue, 100, 100).concat(alpha);
+    x = hslToRgb(hue, 100, 50).concat(alpha);
   }
 
   if (level === 2) {
@@ -243,9 +245,12 @@ const getX = () => {
  * button2 has the correct answer (true).
  */
 const answer = (x) => {
-  if (level === 1)
-    return distVec([x[0], x[1], x[2]], hslToRgb(0, 100, 100)) < 0.1;
-  //   ans = (|x_[1,2,3]-hue(0)|<.1);
+  if (level === 1) {
+    console.log(x);
+    console.log();
+    return distVec([x[0], x[1], x[2]], hslToRgb(0, 100, 50)) < 0.1;
+    //   ans = (|x_[1,2,3]-hue(0)|<.1);
+  }
 
   if (level === 2) return x[0] - x[2] > 0;
   //   ans = ((x_1-x_3)>0);
@@ -258,7 +263,21 @@ const answer = (x) => {
 /** Draw the case given by parameters x
  * @param x parameters of the case
  */
-const drawIt = (x) => {};
+const drawIt = (x) => {
+  const cnv = document.getElementById("mainCanvas");
+  const ctx = cnv.getContext("2d");
+
+  if (level === 1) {
+    ctx.clearRect(0, 0, 500, 500);
+    ctx.beginPath();
+    ctx.fillStyle = `rgba(${x
+      .slice(0, 3)
+      .concat(1 - 4 * (x[3] - 0.5) * (x[3] - 0.5))
+      .join(",")})`;
+    ctx.arc(250, 250, 150 * x[3] + 20, 0, 2 * Math.PI);
+    ctx.fill();
+  }
+};
 
 resethistory();
 restart();
@@ -268,3 +287,12 @@ document.getElementById("button2").onclick = () => click(true);
 document.getElementById("button3").onclick = restart;
 document.getElementById("button4").onclick = nextlevel;
 document.getElementById("button5").onclick = usecomputer;
+
+const mainAnimation = () => {
+  if (mode === "user") {
+    drawIt(getX());
+  }
+  requestAnimationFrame(mainAnimation);
+};
+
+mainAnimation();

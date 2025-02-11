@@ -32,28 +32,28 @@ function setlabels(labels) {
   document.getElementById("button2").innerHTML = labels[1];
 }
 function hide(l) {
-  for (k in l) {
+  for (let k in l) {
     document.getElementById("button" + l[k]).classList.remove("visible");
     document.getElementById("button" + l[k]).classList.add("hidden");
   }
 }
 
 function show(l) {
-  for (k in l) {
+  for (let k in l) {
     document.getElementById("button" + l[k]).classList.remove("hidden");
     document.getElementById("button" + l[k]).classList.add("visible");
   }
 }
 
 function movecenter(l) {
-  for (k in l) {
+  for (let k in l) {
     document.getElementById("button" + l[k]).classList.remove("right");
     document.getElementById("button" + l[k]).classList.add("center");
   }
 }
 
 function moveright(l) {
-  for (k in l) {
+  for (let k in l) {
     document.getElementById("button" + l[k]).classList.remove("center");
     document.getElementById("button" + l[k]).classList.add("right");
   }

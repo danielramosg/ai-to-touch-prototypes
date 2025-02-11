@@ -12,6 +12,8 @@ import {
   updateInfoLevel,
 } from "./helpers.js";
 
+import { train, predict, getWeights, resetWeights } from "./tf-helpers.js";
+
 let msg = "";
 let nstrike = 0;
 let nfalse = 0;
@@ -19,6 +21,7 @@ let ncorrect = 0;
 let required = 4; //TO DO: this parameter should be passed by url
 let mode = ""; // "menu" || "user" || "computer"
 let level = 1; // 1 || 2 || 3   //TO DO: this parameter should be passed by url
+let labels = [];
 
 // Neural Network (nn)
 /** Number of neurons on each layer */
@@ -43,6 +46,7 @@ const W = [
 const t = new Array(10).fill().map(() => performance.now());
 
 let lt0 = t[0];
+let lt3 = t[3];
 
 /** reset[i] () resets the timer t[i] */
 const reset = new Array(10).fill().map((e, i) => () => {
@@ -150,7 +154,7 @@ const resethistory = () => {
   xs = [];
   ys = [];
   cnt = 0;
-  resetweights();
+  resetWeights();
   ncorrect = 0;
   nfalse = 0;
   nstrike = 0;

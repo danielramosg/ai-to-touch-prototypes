@@ -12,6 +12,21 @@ import {
   updateInfoLevel,
 } from "./helpers.js";
 
+import {
+  answerLevel1,
+  answerLevel2,
+  answerLevel3,
+  drawLevel1,
+  drawLevel2,
+  drawLevel3,
+  getXLevel1,
+  getXLevel2,
+  getXLevel3,
+  labelsYLevel1,
+  labelsYLevel2,
+  labelsYLevel3,
+} from "./levels.js";
+
 import { train, predict, getWeights, resetWeights } from "./tf-helpers.js";
 
 let msg = "";
@@ -20,7 +35,7 @@ let nfalse = 0;
 let ncorrect = 0;
 let required = 4; //TO DO: this parameter should be passed by url
 let mode = "user"; // "menu" || "user" || "computer"
-let level = 1; // 1 || 2 || 3   //TO DO: this parameter should be passed by url
+let level = 3; // 1 || 2 || 3   //TO DO: this parameter should be passed by url
 let labels = [];
 let computing = false;
 
@@ -182,9 +197,9 @@ const restart = () => {
   hide([3, 4, 5]);
   show([1, 2]);
 
-  if (level === 1) labels = ["biru", "merah"]; // blue red in Indonesian
-  if (level === 2) labels = ["kiri", "kanan"]; // left right in Indonesian
-  if (level === 3) labels = ["genap", "gasal"]; // even odd in Indonesian
+  if (level === 1) labels = labelsYLevel1;
+  if (level === 2) labels = labelsYLevel2;
+  if (level === 3) labels = labelsYLevel3;
   setlabels(labels);
 
   required = 4; //  required = geturlparameter("required", 4);
@@ -219,40 +234,18 @@ const usecomputer = () => {
   mode = "computer";
 };
 
-let randomint = 3;
-let dir = gaussianRandom();
+const L3Data = {
+  timer: elapsed[0],
+  lastTimer: t[0],
+  randomint: 3,
+  dir: gaussianRandom(),
+};
 
+/** Get a new data point */
 const getX = () => {
-  let x;
-  if (level === 1) {
-    const cval = (elapsed[0]() / 2) % 2 > 1 ? 1 : 0; // switch every two seconds from 0 to 1
-    const hue = cval * 263.5; // 265.5 deg = 0.73 * 360 deg
-    const alpha = (elapsed[0]() / 2) % 1; // alpha ranges from 0 to 1 every two seconds
-    x = hslToRgb(hue, 100, 50).concat(alpha);
-  }
-
-  if (level === 2) {
-    const pt1 = [4 * Math.sin(elapsed[3]() / 2), 4 * Math.cos(elapsed[3]())];
-    const pt2 = [4 * Math.sin(elapsed[3]()), 4 * Math.cos(elapsed[3]() / 1.12)];
-    x = pt1.concat(pt2);
-    // two pairs of coordinates, each one following a Lissajous figure.
-  }
-
-  if (level === 3) {
-    if (Math.floor(elapsed[0]() / 2) !== Math.floor(lt0 / 2)) {
-      // trigger every two seconds
-      randomint = 2 + Math.floor(Math.random() * 4); // an integer between 2 and 5 inclusive
-      dir = gaussianRandom(); // direction of turning
-    }
-    lt0 = elapsed[0]();
-    x = [
-      randomint / 8,
-      dir,
-      (elapsed[0]() / 2) % 1, // parameter determining radius, rotation speed, and alpha
-      (randomint * 0.43 + 0.3) % 1, // parameter determining hue
-    ];
-  }
-  return x;
+  if (level === 1) return getXLevel1(elapsed[0]);
+  if (level === 2) return getXLevel2(elapsed[3]);
+  if (level === 3) return getXLevel3(L3Data);
 };
 
 /** For each parameter vector x, return whether
@@ -260,103 +253,81 @@ const getX = () => {
  * button2 has the correct answer (true).
  */
 const answer = (x) => {
-  if (level === 1) {
-    return distVec([x[0], x[1], x[2]], hslToRgb(0, 100, 50)) < 0.1;
-    //   ans = (|x_[1,2,3]-hue(0)|<.1);
-  }
-
-  if (level === 2) return x[0] - x[2] > 0;
-  //   ans = ((x_1-x_3)>0);
-
-  if (level === 3) return (x[0] * 8) % 2 === 1;
-  //   randomint = x_1*8;
-  //   ans = mod(randomint,2)==1;
+  if (level === 1) return answerLevel1(x);
+  if (level === 2) return answerLevel2(x);
+  if (level === 3) return answerLevel3(x);
 };
 
 /** Draw the case given by parameters x
  * @param x parameters of the case
  */
 const drawIt = (x) => {
+  if (level === 1) drawLevel1(x);
+  if (level === 2) drawLevel2(x);
+  if (level === 3) drawLevel3(x);
+};
+
+// Position of neuron j of layer k in the diagram
+const pos = (k, j) => [
+  (k - 1) * 5,
+  (-3 * (j - (N[k] - 1) / 2)) / (Math.sqrt(N[k]) - 0.5),
+];
+
+const drawNetwork = () => {
+  console.log("drawing network");
   const cnv = document.getElementById("mainCanvas");
   const ctx = cnv.getContext("2d");
+  ctx.clearRect(0, 0, 500, 500);
+  ctx.setTransform(40, 0, 0, 40, 250, 250);
+  ctx.fillStyle = "grey";
+  ctx.strokeStyle = "grey";
 
-  if (level === 1) {
-    ctx.clearRect(0, 0, 500, 500);
-    ctx.beginPath();
-    ctx.fillStyle = `rgba(${x
-      .slice(0, 3)
-      .concat(1 - 4 * (x[3] - 0.5) * (x[3] - 0.5))
-      .join(",")})`;
-    ctx.arc(250, 250, 150 * x[3] + 20, 0, 2 * Math.PI);
-    ctx.fill();
-  }
+  //   for (let k = 0; k < 2; k += 1) {
+  //     for (let j0 = 0; k < N[k]; j0 += 1) {
+  //       for (let j1 = 0; k < N[k + 1]; j1 += 1) {
+  //         const p0 = pos(k, j0);
+  //         const p1 = pos(k + 1, j1);
+  //         ctx.lineWidth = 2;
+  //         ctx.strokeStyle = "grey";
+  //         ctx.beginPath();
+  //         ctx.moveTo(p0[0], p0[1]);
+  //         ctx.lineTo(p1[0], p1[1]);
+  //         ctx.stroke();
+  //       }
+  //     }
+  //   }
 
-  if (level === 2) {
-    ctx.clearRect(0, 0, 500, 500);
-    ctx.setTransform(40, 0, 0, 40, 250, 250);
+  //   forall(1..2, k,
+  //     forall(1..N_k, j0,
+  //       forall(1..N_(k+1), j1,
+  //         w = W_(k*2-1)_j0_j1;
+  //         draw(pos(k, j0), pos(k+1, j1), size->min(2,4*w*w), color->hue(if(w>0,.3,.8)));
+  //       );
+  //     );
+  //   );
 
-    ctx.lineWidth = 0.3;
-    ctx.strokeStyle = "grey";
-    ctx.beginPath();
-    ctx.moveTo(x[0], x[1]);
-    ctx.lineTo(x[2], x[3]);
-    ctx.stroke();
-
-    ctx.lineWidth = 0.1;
-    ctx.strokeStyle = "white";
-    ctx.fillStyle = "rgb(30%,20%,40%)";
-    ctx.beginPath();
-    ctx.arc(x[0], x[1], 1.3, 0, 2 * Math.PI);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = "rgb(50%,100%,10%)";
-    ctx.beginPath();
-    ctx.arc(x[2], x[3], 1.3, 0, 2 * Math.PI);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-
-    // if(mode=="user",
-    //     //  x = 4*[sin(t3()/2), cos(t3())]++4*[sin(t3()),cos(t3()/1.1234)]
-    //     v1 = |[cos(t3()/2)/2, sin(t3())]|;
-    //     v2 = |[cos(t3()),sin(t3()/1.1234)/1.1234]|;
-    //     playsin(300*v1, line->"x12", amp->.1);
-    //     playsin(300*v2, line->"x34", amp->.1);
-    //   );
-  }
-
-  if (level === 3) {
-    // console.log(x);
-    const randomint = x[0] * 8;
-    const param = x[2];
-    const dir = x[1];
-
-    ctx.clearRect(0, 0, 500, 500);
-    ctx.setTransform(40, 0, 0, 40, 250, 250);
-    ctx.fillStyle = `hsla(${x[3] * 360},100%,50%,${
-      1 - 0.9 * 4 * (param - 0.5) * (param - 0.5)
-    })`;
-
-    for (let k = 0; k < randomint; k += 1) {
-      const xx =
-        (2 + param) *
-        Math.cos((2 * Math.PI * k) / randomint + dir * 0.7 * (param + 10));
-      const yy =
-        (2 + param) *
-        Math.sin((2 * Math.PI * k) / randomint + dir * 0.7 * (param + 10));
-
+  for (let k = 0; k < 3; k += 1) {
+    for (let j = 0; j < N[k]; j += 1) {
+      const p = pos(k, j);
       ctx.beginPath();
-      ctx.arc(xx, yy, 0.9, 0, 2 * Math.PI);
+      ctx.arc(p[0], p[1], 0.4, 0, 2 * Math.PI);
       ctx.fill();
     }
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
   }
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+  //   forall(1..3, k,
+  //     forall(1..N_k, j,
+  //       fillcircle(pos(k,j), .5, color->[.7,.7,.7], alpha->.5);
+  //       w = if(k>1,W_(2*k-2)_j,0);
+  //       fillcircle(pos(k,j), .4, alpha->|w|, color->hue(if(w>0,.3,.8)));
+  //     );
+  // );
 };
 
 resethistory();
 restart();
+mode = "computer";
 
 document.getElementById("button1").onclick = () => click(false);
 document.getElementById("button2").onclick = () => click(true);
@@ -385,6 +356,10 @@ const mainAnimation = () => {
 
   if (mode === "menu") {
     drawIt(getX());
+  }
+
+  if (mode === "computer") {
+    drawNetwork();
   }
   requestAnimationFrame(mainAnimation);
 };

@@ -4,12 +4,7 @@ import { distVec, hslToRgb, gaussianRandom } from "./helpers.js";
  *  A circle blue or red
  */
 
-const labelsXLevel1 = [
-  "color<sub>red</sub",
-  "color<sub>green</sub",
-  "color<sub>blue</sub",
-  "size",
-];
+const labelsXLevel1 = ["color (red)", "color (green)", "color (blue)", "size"];
 const labelsYLevel1 = ["biru", "merah"]; // blue red in Indonesian
 
 const getXLevel1 = (timer) => {
@@ -28,13 +23,13 @@ const drawLevel1 = (x) => {
   const cnv = document.getElementById("mainCanvas");
   const ctx = cnv.getContext("2d");
 
-  ctx.clearRect(0, 0, 500, 500);
+  ctx.clearRect(0, 0, 800, 500);
   ctx.beginPath();
   ctx.fillStyle = `rgba(${x
     .slice(0, 3)
     .concat(1 - 4 * (x[3] - 0.5) * (x[3] - 0.5))
     .join(",")})`;
-  ctx.arc(250, 250, 150 * x[3] + 20, 0, 2 * Math.PI);
+  ctx.arc(400, 250, 150 * x[3] + 20, 0, 2 * Math.PI);
   ctx.fill();
 };
 
@@ -43,12 +38,7 @@ const drawLevel1 = (x) => {
  *  Is the green circle the one on the right or on the left?
  */
 
-const labelsXLevel2 = [
-  "x<sub>purple</sub",
-  "y<sub>purple</sub",
-  "x<sub>green</sub",
-  "y<sub>green</sub",
-];
+const labelsXLevel2 = ["x purple", "y purple", "x green", "y green"];
 const labelsYLevel2 = ["kiri", "kanan"]; // left right in Indonesian
 
 const getXLevel2 = (timer) => {
@@ -67,8 +57,8 @@ const drawLevel2 = (x) => {
   const cnv = document.getElementById("mainCanvas");
   const ctx = cnv.getContext("2d");
 
-  ctx.clearRect(0, 0, 500, 500);
-  ctx.setTransform(40, 0, 0, 40, 250, 250);
+  ctx.clearRect(0, 0, 800, 500);
+  ctx.setTransform(40, 0, 0, 40, 400, 250);
 
   ctx.lineWidth = 0.3;
   ctx.strokeStyle = "grey";
@@ -139,8 +129,8 @@ const drawLevel3 = (x) => {
   const param = x[2];
   const dir = x[1];
 
-  ctx.clearRect(0, 0, 500, 500);
-  ctx.setTransform(40, 0, 0, 40, 250, 250);
+  ctx.clearRect(0, 0, 800, 500);
+  ctx.setTransform(40, 0, 0, 40, 400, 250);
   ctx.fillStyle = `hsla(${x[3] * 360},100%,50%,${
     1 - 0.9 * 4 * (param - 0.5) * (param - 0.5)
   })`;

@@ -14,8 +14,8 @@ const pos = (N, k, j) => [
 const drawNetwork = (N, W, xLabels, yLabels) => {
   const cnv = document.getElementById("mainCanvas");
   const ctx = cnv.getContext("2d");
-  ctx.clearRect(0, 0, 500, 500);
-  ctx.setTransform(40, 0, 0, 40, 250, 250);
+  ctx.clearRect(0, 0, 800, 500);
+  ctx.setTransform(40, 0, 0, 40, 400, 250);
   ctx.fillStyle = "grey";
   ctx.strokeStyle = "white";
 
@@ -58,6 +58,26 @@ const drawNetwork = (N, W, xLabels, yLabels) => {
       ctx.fill();
     }
   }
+
+  if (xLabels.length !== N[0] || yLabels.length !== N[2])
+    console.error("Wrong labels dimensions");
+
+  ctx.fillStyle = "white";
+  ctx.font = "0.5px Quicksand";
+  ctx.textAlign = "right";
+  ctx.textBaseline = "middle";
+
+  for (let j = 0; j < N[0]; j += 1) {
+    const p = pos(N, 0, j);
+    ctx.fillText(xLabels[j], p[0] - 0.8, p[1]);
+  }
+
+  ctx.textAlign = "left";
+  for (let j = 0; j < N[2]; j += 1) {
+    const p = pos(N, 2, j);
+    ctx.fillText(yLabels[j], p[0] + 0.8, p[1]);
+  }
+
   ctx.setTransform(1, 0, 0, 1, 0, 0);
 };
 

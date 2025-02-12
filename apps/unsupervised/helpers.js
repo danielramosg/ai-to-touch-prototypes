@@ -27,7 +27,7 @@ const cardinal = (n) => {
   return String(n);
 };
 
-function setlabels(labels) {
+function setButtonLabels(labels) {
   document.getElementById("button1").innerHTML = labels[0];
   document.getElementById("button2").innerHTML = labels[1];
 }
@@ -98,7 +98,7 @@ const updateInfoLevel = (level, correct, incorrect, correctRow) => {
 export {
   ordinal,
   cardinal,
-  setlabels,
+  setButtonLabels,
   hide,
   show,
   movecenter,

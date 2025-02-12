@@ -1,7 +1,7 @@
 import {
   ordinal,
   cardinal,
-  setlabels,
+  setButtonLabels,
   hide,
   show,
   movecenter,
@@ -22,6 +22,9 @@ import {
   getXLevel1,
   getXLevel2,
   getXLevel3,
+  labelsXLevel1,
+  labelsXLevel2,
+  labelsXLevel3,
   labelsYLevel1,
   labelsYLevel2,
   labelsYLevel3,
@@ -37,8 +40,9 @@ let nfalse = 0;
 let ncorrect = 0;
 let required = 4; //TO DO: this parameter should be passed by url
 let mode = "user"; // "menu" || "user" || "computer"
-let level = 3; // 1 || 2 || 3   //TO DO: this parameter should be passed by url
-let labels = [];
+let level = 1; // 1 || 2 || 3   //TO DO: this parameter should be passed by url
+let xLabels = [];
+let yLabels = [];
 let computing = false;
 
 // Neural Network (nn)
@@ -199,10 +203,19 @@ const restart = () => {
   hide([3, 4, 5]);
   show([1, 2]);
 
-  if (level === 1) labels = labelsYLevel1;
-  if (level === 2) labels = labelsYLevel2;
-  if (level === 3) labels = labelsYLevel3;
-  setlabels(labels);
+  if (level === 1) {
+    xLabels = labelsXLevel1;
+    yLabels = labelsYLevel1;
+  }
+  if (level === 2) {
+    xLabels = labelsXLevel2;
+    yLabels = labelsYLevel2;
+  }
+  if (level === 3) {
+    xLabels = labelsXLevel3;
+    yLabels = labelsYLevel3;
+  }
+  setButtonLabels(yLabels);
 
   required = 4; //  required = geturlparameter("required", 4);
 
@@ -271,7 +284,7 @@ const drawIt = (x) => {
 
 resethistory();
 restart();
-mode = "computer";
+// mode = "computer";
 
 document.getElementById("button1").onclick = () => click(false);
 document.getElementById("button2").onclick = () => click(true);
@@ -303,7 +316,7 @@ const mainAnimation = () => {
   }
 
   if (mode === "computer") {
-    drawNetwork(N, W, [], []);
+    drawNetwork(N, W, xLabels, yLabels);
   }
 
   requestAnimationFrame(mainAnimation);

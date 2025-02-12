@@ -27,6 +27,8 @@ import {
   labelsYLevel3,
 } from "./levels.js";
 
+import { drawNetwork } from "./network.js";
+
 import { train, predict, getWeights, resetWeights } from "./tf-helpers.js";
 
 let msg = "";
@@ -267,64 +269,6 @@ const drawIt = (x) => {
   if (level === 3) drawLevel3(x);
 };
 
-// Position of neuron j of layer k in the diagram
-const pos = (k, j) => [
-  (k - 1) * 5,
-  (-3 * (j - (N[k] - 1) / 2)) / (Math.sqrt(N[k]) - 0.5),
-];
-
-const drawNetwork = () => {
-  console.log("drawing network");
-  const cnv = document.getElementById("mainCanvas");
-  const ctx = cnv.getContext("2d");
-  ctx.clearRect(0, 0, 500, 500);
-  ctx.setTransform(40, 0, 0, 40, 250, 250);
-  ctx.fillStyle = "grey";
-  ctx.strokeStyle = "grey";
-
-  //   for (let k = 0; k < 2; k += 1) {
-  //     for (let j0 = 0; k < N[k]; j0 += 1) {
-  //       for (let j1 = 0; k < N[k + 1]; j1 += 1) {
-  //         const p0 = pos(k, j0);
-  //         const p1 = pos(k + 1, j1);
-  //         ctx.lineWidth = 2;
-  //         ctx.strokeStyle = "grey";
-  //         ctx.beginPath();
-  //         ctx.moveTo(p0[0], p0[1]);
-  //         ctx.lineTo(p1[0], p1[1]);
-  //         ctx.stroke();
-  //       }
-  //     }
-  //   }
-
-  //   forall(1..2, k,
-  //     forall(1..N_k, j0,
-  //       forall(1..N_(k+1), j1,
-  //         w = W_(k*2-1)_j0_j1;
-  //         draw(pos(k, j0), pos(k+1, j1), size->min(2,4*w*w), color->hue(if(w>0,.3,.8)));
-  //       );
-  //     );
-  //   );
-
-  for (let k = 0; k < 3; k += 1) {
-    for (let j = 0; j < N[k]; j += 1) {
-      const p = pos(k, j);
-      ctx.beginPath();
-      ctx.arc(p[0], p[1], 0.4, 0, 2 * Math.PI);
-      ctx.fill();
-    }
-  }
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-
-  //   forall(1..3, k,
-  //     forall(1..N_k, j,
-  //       fillcircle(pos(k,j), .5, color->[.7,.7,.7], alpha->.5);
-  //       w = if(k>1,W_(2*k-2)_j,0);
-  //       fillcircle(pos(k,j), .4, alpha->|w|, color->hue(if(w>0,.3,.8)));
-  //     );
-  // );
-};
-
 resethistory();
 restart();
 mode = "computer";
@@ -359,8 +303,9 @@ const mainAnimation = () => {
   }
 
   if (mode === "computer") {
-    drawNetwork();
+    drawNetwork(N, W, [], []);
   }
+
   requestAnimationFrame(mainAnimation);
 };
 

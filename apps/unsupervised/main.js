@@ -34,13 +34,15 @@ import { drawNetwork } from "./network.js";
 
 import { train, predict, getWeights, resetWeights } from "./tf-helpers.js";
 
+const mainCanvas = document.getElementById("mainCanvas");
+
 let msg = "";
 let nstrike = 0;
 let nfalse = 0;
 let ncorrect = 0;
 let required = 4; //TO DO: this parameter should be passed by url
 let mode = "user"; // "menu" || "user" || "computer"
-let level = 1; // 1 || 2 || 3   //TO DO: this parameter should be passed by url
+let level = 3; // 1 || 2 || 3   //TO DO: this parameter should be passed by url
 let xLabels = [];
 let yLabels = [];
 let computing = false;
@@ -90,7 +92,7 @@ const generateRandomX = () => {
   t[3] = 500 * Math.random();
   t[4] = 500 * Math.random();
   t[5] = 500 * Math.random();
-  getX();
+  return getX();
 };
 
 /** Handler for the click event on button1 and button2.
@@ -169,8 +171,19 @@ const incorrect = () => {
  * */
 const computerguess = new Array(5).fill("");
 
-/** Array of canvas elements */
-let cimg = new Array(5).fill(null);
+/** Array of cImg items */
+let cImg = new Array(5).fill(null).map(() => {
+  const item = document.createElement("div");
+  const cnv = document.createElement("canvas");
+  const txt = document.createElement("div");
+  cnv.width = 800;
+  cnv.height = 500;
+  item.classList = "cImgItem";
+  item.appendChild(cnv);
+  item.appendChild(txt);
+  document.getElementById("cImgContainer").appendChild(item);
+  return { cnv: cnv, txt: txt };
+});
 
 //training data
 let xs = [];
@@ -181,12 +194,6 @@ let cnt = 0;
 
 /** Reset Neural Network and history of saved observations */
 const resethistory = () => {
-  cimg = cimg.map(() => {
-    const cnv = document.createElement("canvas");
-    cnv.width = 160;
-    cnv.height = 90;
-    return cnv;
-  });
   computerguess.fill("");
   cimgcnt = 0;
   xs = [];
@@ -276,15 +283,15 @@ const answer = (x) => {
 /** Draw the case given by parameters x
  * @param x parameters of the case
  */
-const drawIt = (x) => {
-  if (level === 1) drawLevel1(x);
-  if (level === 2) drawLevel2(x);
-  if (level === 3) drawLevel3(x);
+const drawIt = (cnv, x) => {
+  if (level === 1) drawLevel1(cnv, x);
+  if (level === 2) drawLevel2(cnv, x);
+  if (level === 3) drawLevel3(cnv, x);
 };
 
 resethistory();
 restart();
-// mode = "computer";
+mode = "computer";
 
 document.getElementById("button1").onclick = () => click(false);
 document.getElementById("button2").onclick = () => click(true);
@@ -301,7 +308,7 @@ updateInfoLevel(
 
 const mainAnimation = () => {
   if (mode === "user") {
-    drawIt(getX());
+    drawIt(mainCanvas, getX());
 
     if (elapsed[9]() < 2) {
       const a = (2 - elapsed[9]()) / 2;
@@ -312,11 +319,23 @@ const mainAnimation = () => {
   }
 
   if (mode === "menu") {
-    drawIt(getX());
+    drawIt(mainCanvas, getX());
   }
 
   if (mode === "computer") {
     drawNetwork(N, W, xLabels, yLabels);
+
+    if (elapsed[7]() > 1) {
+      cimgcnt = (cimgcnt + 1) % 5;
+      const x = generateRandomX();
+
+      console.log(x);
+      drawIt(cImg[cimgcnt].cnv, x);
+      cImg[cimgcnt].txt.innerHTML = "aaaa";
+
+      reset[7]();
+    }
+    // //generate new random image
   }
 
   requestAnimationFrame(mainAnimation);

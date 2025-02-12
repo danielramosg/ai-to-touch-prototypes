@@ -19,8 +19,7 @@ const answerLevel1 = (x) => {
   //   ans = (|x_[1,2,3]-hue(0)|<.1);
 };
 
-const drawLevel1 = (x) => {
-  const cnv = document.getElementById("mainCanvas");
+const drawLevel1 = (cnv, x) => {
   const ctx = cnv.getContext("2d");
 
   ctx.clearRect(0, 0, 800, 500);
@@ -53,8 +52,7 @@ const answerLevel2 = (x) => {
   //   ans = ((x_1-x_3)>0);
 };
 
-const drawLevel2 = (x) => {
-  const cnv = document.getElementById("mainCanvas");
+const drawLevel2 = (cnv, x) => {
   const ctx = cnv.getContext("2d");
 
   ctx.clearRect(0, 0, 800, 500);
@@ -121,8 +119,7 @@ const answerLevel3 = (x) => {
   //   ans = mod(randomint,2)==1;
 };
 
-const drawLevel3 = (x) => {
-  const cnv = document.getElementById("mainCanvas");
+const drawLevel3 = (cnv, x) => {
   const ctx = cnv.getContext("2d");
 
   const randomint = x[0] * 8;

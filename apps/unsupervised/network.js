@@ -23,8 +23,8 @@ const drawNetwork = (N, W, xLabels, yLabels) => {
       for (let j1 = 0; j1 < N[k + 1]; j1 += 1) {
         const p0 = pos(N, k, j0);
         const p1 = pos(N, k + 1, j1);
-        // const w = W[2 * k][j0][j1];
-        const w = -0.09; //test
+        const w = W[2 * k][j0][j1];
+        // const w = -0.09; //test
         const lw = Math.min(0.1, 4 * w * w);
         if (lw > 0) {
           ctx.lineWidth = lw;
@@ -41,8 +41,8 @@ const drawNetwork = (N, W, xLabels, yLabels) => {
   for (let k = 0; k < 3; k += 1) {
     for (let j = 0; j < N[k]; j += 1) {
       const p = pos(N, k, j);
-      //   const w = k > 0 ? W[2 * k - 1] : 0;
-      const w = 0.5;
+      const w = k > 0 ? W[2 * k - 1] : 0;
+      //   const w = 0.5; // test
 
       ctx.fillStyle = "grey";
       ctx.beginPath();

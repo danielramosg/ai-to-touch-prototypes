@@ -55,65 +55,7 @@ let level = 1; // 1 || 2 || 3   //TO DO: this parameter should be passed by url
 let xLabels = [];
 let yLabels = [];
 let computing = false;
-
-/* UI */
-
-const setMode = (m) => {
-  if (m === "menu") {
-    hide("button1", "button2", "button3", "cImgContainer", "infoLevel");
-    show("button3", "button4", "button5");
-    movecenter("button3", "button4", "button5");
-  }
-  if (m === "user") {
-    hide("button3", "button4", "button5", "cImgContainer");
-    show("button1", "button2", "infoLevel");
-  }
-  if (m === "computer") {
-    hide("button1", "button2", "button5");
-    show("button3", "button4", "cImgContainer", "infoLevel");
-    moveright("button3", "button4");
-
-    resethistory();
-    reset[7]();
-    reset[8]();
-    reset[9]();
-  }
-  mode = m;
-};
-
-const setLevel = (l) => {
-  level = l;
-
-  if (l === 1) {
-    xLabels = labelsXLevel1;
-    yLabels = labelsYLevel1;
-  }
-  if (l === 2) {
-    xLabels = labelsXLevel2;
-    yLabels = labelsYLevel2;
-  }
-  if (l === 3) {
-    xLabels = labelsXLevel3;
-    yLabels = labelsYLevel3;
-  }
-  setButtonLabels(yLabels);
-  resetStats();
-  updateInfoLevel({ mode, level, ncorrect, nfalse, nstrike, required });
-
-  resethistory();
-};
-
-const resetStats = () => {
-  ncorrect = 0;
-  nfalse = 0;
-  nstrike = 0;
-};
-
-const nextlevel = () => {
-  level = (level % 3) + 1;
-  setMode("user");
-  setLevel(level);
-};
+let guesser;
 
 /* Neural Network (nn) */
 
@@ -121,7 +63,7 @@ const nextlevel = () => {
 const N = [4, 6, 2];
 
 /** Weights & biases */
-const W = [
+let W = [
   new Array(N[0]).fill().map(() => new Array(N[1]).fill(0)), // Matrix connecting layer 0 and 1
   new Array(N[1]).fill(0), // Weights of layer 1
   new Array(N[1]).fill().map(() => new Array(N[2]).fill(0)), // Matrix connecting layer 1 and 2
@@ -304,19 +246,6 @@ const drawIt = (cnv, x) => {
   if (level === 3) drawLevel3(cnv, x);
 };
 
-resethistory();
-restartLevel();
-
-setMode("computer");
-
-document.getElementById("button1").onclick = () => click(false);
-document.getElementById("button2").onclick = () => click(true);
-document.getElementById("button3").onclick = restartLevel;
-document.getElementById("button4").onclick = nextlevel;
-document.getElementById("button5").onclick = () => setMode("computer");
-
-updateInfoLevel({ mode, level, ncorrect, nfalse, nstrike, required });
-
 const makeComputerGuess = () => {
   cimgcnt = (cimgcnt + 1) % 5;
 
@@ -327,7 +256,6 @@ const makeComputerGuess = () => {
   predict([x]).then((ans) => {
     // then draw that guess
     const y = ans[0];
-    console.log(y);
     const guess = y[0] > 0.5 ? yLabels[0] : yLabels[1];
     let guessLabel = "";
 
@@ -358,8 +286,107 @@ const makeComputerGuess = () => {
       xs.shift();
       ys.shift();
     }
+
+    // resetWeights();
+    // getWeights().then((d) => {
+    //   W = d;
+    //   console.log(W);
+    // });
+
+    console.log(W);
+    if (!computing && xs.length > 1) {
+      computing = true;
+      console.log("computing");
+
+      train(xs, ys)
+        .then(() => getWeights())
+        .then((d) => {
+          W = d;
+          computing = false;
+        });
+    }
   });
 };
+
+/* UI */
+
+const setMode = (m) => {
+  mode = m;
+  if (m === "menu") {
+    hide("button1", "button2", "button3", "cImgContainer", "infoLevel");
+    show("button3", "button4", "button5");
+    movecenter("button3", "button4", "button5");
+
+    clearInterval(guesser);
+  }
+
+  if (m === "user") {
+    hide("button3", "button4", "button5", "cImgContainer");
+    show("button1", "button2", "infoLevel");
+
+    clearInterval(guesser);
+  }
+
+  if (m === "computer") {
+    hide("button1", "button2", "button5");
+    show("button3", "button4", "cImgContainer", "infoLevel");
+    moveright("button3", "button4");
+
+    resethistory();
+    reset[7]();
+    reset[8]();
+    reset[9]();
+    guesser = setInterval(makeComputerGuess, 1000);
+  }
+};
+
+const setLevel = (l) => {
+  level = l;
+
+  if (l === 1) {
+    xLabels = labelsXLevel1;
+    yLabels = labelsYLevel1;
+  }
+  if (l === 2) {
+    xLabels = labelsXLevel2;
+    yLabels = labelsYLevel2;
+  }
+  if (l === 3) {
+    xLabels = labelsXLevel3;
+    yLabels = labelsYLevel3;
+  }
+  setButtonLabels(yLabels);
+  resetStats();
+  updateInfoLevel({ mode, level, ncorrect, nfalse, nstrike, required });
+
+  resethistory();
+};
+
+const resetStats = () => {
+  ncorrect = 0;
+  nfalse = 0;
+  nstrike = 0;
+};
+
+const nextlevel = () => {
+  level = (level % 3) + 1;
+  setMode("user");
+  setLevel(level);
+};
+
+document.getElementById("button1").onclick = () => click(false);
+document.getElementById("button2").onclick = () => click(true);
+document.getElementById("button3").onclick = restartLevel;
+document.getElementById("button4").onclick = nextlevel;
+document.getElementById("button5").onclick = () => setMode("computer");
+
+/* RUN */
+
+resethistory();
+restartLevel();
+setMode("computer");
+
+updateInfoLevel({ mode, level, ncorrect, nfalse, nstrike, required });
 
 const mainAnimation = () => {
   if (mode === "user") {
@@ -379,15 +406,6 @@ const mainAnimation = () => {
 
   if (mode === "computer") {
     drawNetwork(N, W, xLabels, yLabels);
-
-    //generate new random image
-    if (elapsed[7]() > 1) {
-      makeComputerGuess();
-      reset[7]();
-    }
-
-    //train network on computed xs and ys
-    // TO DO
   }
 
   requestAnimationFrame(mainAnimation);

@@ -36,18 +36,87 @@ import { train, predict, getWeights, resetWeights } from "./tf-helpers.js";
 
 const mainCanvas = document.getElementById("mainCanvas");
 
+// const state = {
+//   mode: "user",
+//   level: 1,
+//   nstrike: 0,
+//   ncorrect: 0,
+//   nfalse: 0,
+//   required: 4,
+// };
+
 let msg = "";
 let nstrike = 0;
 let nfalse = 0;
 let ncorrect = 0;
 let required = 4; //TO DO: this parameter should be passed by url
 let mode = "user"; // "menu" || "user" || "computer"
-let level = 3; // 1 || 2 || 3   //TO DO: this parameter should be passed by url
+let level = 1; // 1 || 2 || 3   //TO DO: this parameter should be passed by url
 let xLabels = [];
 let yLabels = [];
 let computing = false;
 
-// Neural Network (nn)
+/* UI */
+
+const setMode = (m) => {
+  if (m === "menu") {
+    hide("button1", "button2", "button3", "cImgContainer", "infoLevel");
+    show("button3", "button4", "button5");
+    movecenter("button3", "button4", "button5");
+  }
+  if (m === "user") {
+    hide("button3", "button4", "button5", "cImgContainer");
+    show("button1", "button2", "infoLevel");
+  }
+  if (m === "computer") {
+    hide("button1", "button2", "button5");
+    show("button3", "button4", "cImgContainer", "infoLevel");
+    moveright("button3", "button4");
+
+    resethistory();
+    reset[7]();
+    reset[8]();
+    reset[9]();
+  }
+  mode = m;
+};
+
+const setLevel = (l) => {
+  level = l;
+
+  if (l === 1) {
+    xLabels = labelsXLevel1;
+    yLabels = labelsYLevel1;
+  }
+  if (l === 2) {
+    xLabels = labelsXLevel2;
+    yLabels = labelsYLevel2;
+  }
+  if (l === 3) {
+    xLabels = labelsXLevel3;
+    yLabels = labelsYLevel3;
+  }
+  setButtonLabels(yLabels);
+  resetStats();
+  updateInfoLevel({ mode, level, ncorrect, nfalse, nstrike, required });
+
+  resethistory();
+};
+
+const resetStats = () => {
+  ncorrect = 0;
+  nfalse = 0;
+  nstrike = 0;
+};
+
+const nextlevel = () => {
+  level = (level % 3) + 1;
+  setMode("user");
+  setLevel(level);
+};
+
+/* Neural Network (nn) */
+
 /** Number of neurons on each layer */
 const N = [4, 6, 2];
 
@@ -59,7 +128,8 @@ const W = [
   new Array(N[2]).fill(0), // Weights of layer 2
 ];
 
-/**Timers */
+/* Timers */
+
 // tN() = time since tN, in seconds
 // resetN() resets the variable tN to current time.
 // tN is initialised to current time (for all N)
@@ -106,7 +176,7 @@ const click = (ans) => {
     console.log("answer:", answer(x));
     answer(x) === ans ? correct() : incorrect();
   }
-  hide([1, 2]);
+  hide("button1", "button2");
   reset[9]();
 };
 
@@ -121,27 +191,20 @@ const correct = () => {
   msg = "your answer was correct " + emojis[Math.floor(5 * Math.random())];
 
   if (nstrike > 1) {
-    msg =
-      msg +
+    msg = msg.concat(
       ` (${ordinal(nstrike)} time) <br>
-      Can you make ${cardinal(required)} correct guesses in a row?`;
+      Can you make ${cardinal(required)} correct guesses in a row?`
+    );
   }
 
   if (nstrike >= required && mode === "user") {
     msg = "";
-    mode = "menu";
-    hide([1, 2, 3]);
-    show([3, 4, 5]);
-    movecenter([3, 4, 5]);
+    setMode("menu");
   }
+
   document.getElementById("result").innerHTML = msg;
+  updateInfoLevel({ mode, level, ncorrect, nfalse, nstrike, required });
   reset[9]();
-  updateInfoLevel(
-    level,
-    ncorrect,
-    nfalse,
-    nstrike.toString().concat(mode === "user" ? `/${required}` : ``)
-  );
 };
 
 /** Handle an incorrect answer */
@@ -155,27 +218,17 @@ const incorrect = () => {
 
   nstrike = 0;
   nfalse += 1;
-  updateInfoLevel(
-    level,
-    ncorrect,
-    nfalse,
-    nstrike.toString().concat(mode === "user" ? `/${required}` : ``)
-  );
+  updateInfoLevel({ mode, level, ncorrect, nfalse, nstrike, required });
 };
 
-/** Computer guesses, as array of strings.
- *
- * Each string is a label of the computer guess
- * plus a sign "✔" or "✗" depending on whether the
- * guess is correct or not.
- * */
-const computerguess = new Array(5).fill("");
-
-/** Array of cImg items */
+/** Array of cImg items.
+ * The last five data points in the computer-generated
+ * data are displayed.
+ */
 let cImg = new Array(5).fill(null).map(() => {
-  const item = document.createElement("div");
-  const cnv = document.createElement("canvas");
-  const txt = document.createElement("div");
+  const item = document.createElement("div"); // item container
+  const cnv = document.createElement("canvas"); // image
+  const txt = document.createElement("div"); // label (guess option plus a sign "✔" or "✗")
   cnv.width = 800;
   cnv.height = 500;
   item.classList = "cImgItem";
@@ -194,66 +247,28 @@ let cnt = 0;
 
 /** Reset Neural Network and history of saved observations */
 const resethistory = () => {
-  computerguess.fill("");
   cimgcnt = 0;
   xs = [];
   ys = [];
   cnt = 0;
   resetWeights();
-  ncorrect = 0;
-  nfalse = 0;
-  nstrike = 0;
+  resetStats();
 };
 
-const restart = () => {
+const restartLevel = () => {
   //   resetclock();
-  hide([3, 4, 5]);
-  show([1, 2]);
-
-  if (level === 1) {
-    xLabels = labelsXLevel1;
-    yLabels = labelsYLevel1;
-  }
-  if (level === 2) {
-    xLabels = labelsXLevel2;
-    yLabels = labelsYLevel2;
-  }
-  if (level === 3) {
-    xLabels = labelsXLevel3;
-    yLabels = labelsYLevel3;
-  }
-  setButtonLabels(yLabels);
-
-  required = 4; //  required = geturlparameter("required", 4);
+  setMode("user");
+  setLevel(level);
 
   lt3 = elapsed[3]();
-  ncorrect = 0;
-  nfalse = 0;
-  nstrike = 0;
+  resetStats();
   reset[0]();
   reset[1]();
   reset[2]();
   reset[9]();
   msg = "";
-  mode = "user";
-};
 
-const nextlevel = () => {
-  level = (level % 3) + 1;
-  resethistory();
-  restart();
-};
-
-const usecomputer = () => {
-  hide([1, 2, 5]);
-  show([3, 4]);
-  moveright([3, 4]);
-  resethistory();
-  //required = 8;
-  reset[7]();
-  reset[8]();
-  reset[9]();
-  mode = "computer";
+  updateInfoLevel({ mode, level, ncorrect, nfalse, nstrike, required });
 };
 
 const L3Data = {
@@ -290,21 +305,16 @@ const drawIt = (cnv, x) => {
 };
 
 resethistory();
-restart();
-mode = "computer";
+restartLevel();
+// mode = "computer";
 
 document.getElementById("button1").onclick = () => click(false);
 document.getElementById("button2").onclick = () => click(true);
-document.getElementById("button3").onclick = restart;
+document.getElementById("button3").onclick = restartLevel;
 document.getElementById("button4").onclick = nextlevel;
-document.getElementById("button5").onclick = usecomputer;
+document.getElementById("button5").onclick = () => setMode("computer");
 
-updateInfoLevel(
-  level,
-  ncorrect,
-  nfalse,
-  nstrike.toString().concat(mode === "user" ? `/${required}` : ``)
-);
+updateInfoLevel({ mode, level, ncorrect, nfalse, nstrike, required });
 
 const mainAnimation = () => {
   if (mode === "user") {
@@ -315,7 +325,7 @@ const mainAnimation = () => {
       document.getElementById("result").style.opacity = a;
     }
 
-    if (elapsed[9]() > 1) show([1, 2]);
+    if (elapsed[9]() > 1) show("button1", "button2");
   }
 
   if (mode === "menu") {
@@ -325,6 +335,7 @@ const mainAnimation = () => {
   if (mode === "computer") {
     drawNetwork(N, W, xLabels, yLabels);
 
+    //generate new random image
     if (elapsed[7]() > 1) {
       cimgcnt = (cimgcnt + 1) % 5;
       const x = generateRandomX();
@@ -333,9 +344,17 @@ const mainAnimation = () => {
       drawIt(cImg[cimgcnt].cnv, x);
       cImg[cimgcnt].txt.innerHTML = "aaaa";
 
+      //make some guess for the image based on nn
+      // TO DO
+
+      //add correct answer to training data
+      // TO DO
+
       reset[7]();
     }
-    // //generate new random image
+
+    //train network on computed xs and ys
+    // TO DO
   }
 
   requestAnimationFrame(mainAnimation);

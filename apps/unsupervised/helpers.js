@@ -31,31 +31,31 @@ function setButtonLabels(labels) {
   document.getElementById("button1").innerHTML = labels[0];
   document.getElementById("button2").innerHTML = labels[1];
 }
-function hide(l) {
-  for (let k in l) {
-    document.getElementById("button" + l[k]).classList.remove("visible");
-    document.getElementById("button" + l[k]).classList.add("hidden");
+function hide(...l) {
+  for (const k of l) {
+    document.getElementById(k).classList.remove("visible");
+    document.getElementById(k).classList.add("hidden");
   }
 }
 
-function show(l) {
-  for (let k in l) {
-    document.getElementById("button" + l[k]).classList.remove("hidden");
-    document.getElementById("button" + l[k]).classList.add("visible");
+function show(...l) {
+  for (const k of l) {
+    document.getElementById(k).classList.remove("hidden");
+    document.getElementById(k).classList.add("visible");
   }
 }
 
-function movecenter(l) {
-  for (let k in l) {
-    document.getElementById("button" + l[k]).classList.remove("right");
-    document.getElementById("button" + l[k]).classList.add("center");
+function movecenter(...l) {
+  for (const k of l) {
+    document.getElementById(k).classList.remove("right");
+    document.getElementById(k).classList.add("center");
   }
 }
 
-function moveright(l) {
-  for (let k in l) {
-    document.getElementById("button" + l[k]).classList.remove("center");
-    document.getElementById("button" + l[k]).classList.add("right");
+function moveright(...l) {
+  for (const k of l) {
+    document.getElementById(k).classList.remove("center");
+    document.getElementById(k).classList.add("right");
   }
 }
 
@@ -88,11 +88,20 @@ const distVec = (u, v) => {
   return Math.sqrt(normSquare);
 };
 
-const updateInfoLevel = (level, correct, incorrect, correctRow) => {
+const updateInfoLevel = ({
+  mode,
+  level,
+  ncorrect,
+  nfalse,
+  nstrike,
+  required,
+}) => {
   document.getElementById("levelLabel").innerHTML = level;
-  document.getElementById("correctLabel").innerHTML = correct;
-  document.getElementById("incorrectLabel").innerHTML = incorrect;
-  document.getElementById("correctRowLabel").innerHTML = correctRow;
+  document.getElementById("correctLabel").innerHTML = ncorrect;
+  document.getElementById("incorrectLabel").innerHTML = nfalse;
+  document.getElementById("correctRowLabel").innerHTML = nstrike
+    .toString()
+    .concat(mode === "user" ? `/${required}` : ``);
 };
 
 export {

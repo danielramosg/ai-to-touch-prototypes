@@ -1,5 +1,4 @@
-/** Given a neural network N, return the layout position of neuron j of layer k
- */
+/** Given a neural network N, return the layout position of neuron j of layer k. */
 const pos = (N, k, j) => [
   (k - 1) * 5,
   (-3 * (j - (N[k] - 1) / 2)) / (Math.sqrt(N[k]) - 0.5),

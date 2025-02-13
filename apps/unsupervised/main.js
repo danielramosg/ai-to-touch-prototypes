@@ -306,7 +306,8 @@ const drawIt = (cnv, x) => {
 
 resethistory();
 restartLevel();
-// mode = "computer";
+
+setMode("computer");
 
 document.getElementById("button1").onclick = () => click(false);
 document.getElementById("button2").onclick = () => click(true);
@@ -315,6 +316,50 @@ document.getElementById("button4").onclick = nextlevel;
 document.getElementById("button5").onclick = () => setMode("computer");
 
 updateInfoLevel({ mode, level, ncorrect, nfalse, nstrike, required });
+
+const makeComputerGuess = () => {
+  cimgcnt = (cimgcnt + 1) % 5;
+
+  // generate a new datum
+  const x = generateRandomX();
+
+  //make some guess for the datum based on nn
+  predict([x]).then((ans) => {
+    // then draw that guess
+    const y = ans[0];
+    console.log(y);
+    const guess = y[0] > 0.5 ? yLabels[0] : yLabels[1];
+    let guessLabel = "";
+
+    if (y[1] > 0.5 === answer(x)) {
+      guessLabel = guess.concat(` ✔`);
+      correct();
+    } else {
+      guessLabel = guess.concat(` ✗`);
+      incorrect();
+    }
+
+    drawIt(cImg[cimgcnt].cnv, x);
+    cImg[cimgcnt].txt.innerHTML = guessLabel;
+
+    // and add the datum to the training data
+    xs.push(x);
+    ys.push(answer(x) ? [1, 0] : [0, 1]);
+
+    // if model is not getting better, restart it
+    cnt += 1;
+    if (cnt > 20 && nstrike < 4) {
+      resetWeights();
+      cnt = 0;
+    }
+
+    // cut away too old answers
+    if (xs.length > 32) {
+      xs.shift();
+      ys.shift();
+    }
+  });
+};
 
 const mainAnimation = () => {
   if (mode === "user") {
@@ -337,19 +382,7 @@ const mainAnimation = () => {
 
     //generate new random image
     if (elapsed[7]() > 1) {
-      cimgcnt = (cimgcnt + 1) % 5;
-      const x = generateRandomX();
-
-      console.log(x);
-      drawIt(cImg[cimgcnt].cnv, x);
-      cImg[cimgcnt].txt.innerHTML = "aaaa";
-
-      //make some guess for the image based on nn
-      // TO DO
-
-      //add correct answer to training data
-      // TO DO
-
+      makeComputerGuess();
       reset[7]();
     }
 

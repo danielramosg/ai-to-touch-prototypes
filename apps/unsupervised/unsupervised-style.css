@@ -112,7 +112,7 @@ body {
 .cImgItem {
   position: absolute;
   border: 1px solid blue;
-  width: 4em;
+  width: 5em;
   height: 100%;
   animation: slide-item 5s infinite;
   animation-timing-function: linear;
@@ -128,7 +128,7 @@ body {
 }
 
 .cImgItem canvas {
-  width: 120%;
+  width: 100%;
 }
 
 .cImgItem:nth-child(2) {

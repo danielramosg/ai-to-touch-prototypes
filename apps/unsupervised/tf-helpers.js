@@ -39,7 +39,7 @@ const train = (xs, ys) => {
   );
 };
 
-const predict = () => {
+const predict = (xs) => {
   return model.predict(tf.tensor2d(xs, [xs.length, 4])).array();
 };
 

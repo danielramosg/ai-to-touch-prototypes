@@ -8,7 +8,7 @@ import {
   moveright,
   updateInfoLevel,
 } from "./helpers.js";
-import { level1, level2, level3 } from "./levels.js";
+import { levels } from "./levels.js";
 import { drawNetwork } from "./network.js";
 import { train, predict, getWeights, resetWeights } from "./tf-helpers.js";
 
@@ -182,29 +182,16 @@ const restartLevel = () => {
 };
 
 /** Get a new data point */
-const getX = (seed) => {
-  if (level === 1) return level1.getX(seed);
-  if (level === 2) return level2.getX(seed);
-  if (level === 3) return level3.getX(seed);
-};
+const getX = (seed) => levels[level].getX(seed);
 
 /** For each parameter vector x, return
- * the index of the true answer in yLabels
- */
-const answer = (x) => {
-  if (level === 1) return level1.answer(x);
-  if (level === 2) return level2.answer(x);
-  if (level === 3) return level3.answer(x);
-};
+ * the index of the true answer in yLabels */
+const answer = (x) => levels[level].answer(x);
 
 /** Draw the case given by parameters x
- * @param x parameters of the case
- */
-const drawIt = (cnv, x) => {
-  if (level === 1) level1.draw(cnv, x);
-  if (level === 2) level2.draw(cnv, x);
-  if (level === 3) level3.draw(cnv, x);
-};
+ * @param cnv canvas to draw on
+ * @param x parameters of the case */
+const drawIt = (cnv, x) => levels[level].draw(cnv, x);
 
 const makeComputerGuess = () => {
   cimgcnt = (cimgcnt + 1) % 5;
@@ -303,23 +290,12 @@ const setMode = (m) => {
 
 const setLevel = (l) => {
   level = l;
+  xLabels = levels[l].xLabels;
+  yLabels = levels[l].yLabels;
 
-  if (l === 1) {
-    xLabels = level1.xLabels;
-    yLabels = level1.yLabels;
-  }
-  if (l === 2) {
-    xLabels = level2.xLabels;
-    yLabels = level2.yLabels;
-  }
-  if (l === 3) {
-    xLabels = level3.xLabels;
-    yLabels = level3.yLabels;
-  }
   setButtonLabels(yLabels);
   resetStats();
   updateInfoLevel({ mode, level, ncorrect, nfalse, nstrike, required });
-
   resethistory();
 };
 

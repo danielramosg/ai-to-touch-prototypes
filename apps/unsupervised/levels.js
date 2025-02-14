@@ -182,4 +182,5 @@ const level3 = {
   },
 };
 
-export { level1, level2, level3 };
+const levels = [null, level1, level2, level3];
+export { levels };

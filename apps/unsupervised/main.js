@@ -10,23 +10,7 @@ import {
   updateInfoLevel,
 } from "./helpers.js";
 
-import {
-  answerLevel1,
-  answerLevel2,
-  answerLevel3,
-  drawLevel1,
-  drawLevel2,
-  drawLevel3,
-  getXLevel1,
-  getXLevel2,
-  getXLevel3,
-  labelsXLevel1,
-  labelsXLevel2,
-  labelsXLevel3,
-  labelsYLevel1,
-  labelsYLevel2,
-  labelsYLevel3,
-} from "./levels.js";
+import { level1, level2, level3 } from "./levels.js";
 
 import { drawNetwork } from "./network.js";
 
@@ -209,36 +193,29 @@ const restartLevel = () => {
   updateInfoLevel({ mode, level, ncorrect, nfalse, nstrike, required });
 };
 
-const L3Data = {
-  timer: elapsed[0],
-  lastTimer: t[0],
-  randomint: 3,
-  dir: gaussianRandom(),
-};
-
 /** Get a new data point */
 const getX = () => {
-  if (level === 1) return getXLevel1(elapsed[0]);
-  if (level === 2) return getXLevel2(elapsed[3]);
-  if (level === 3) return getXLevel3(L3Data);
+  if (level === 1) return level1.getX();
+  if (level === 2) return level2.getX();
+  if (level === 3) return level3.getX();
 };
 
 /** For each parameter vector x, return
  * the index of the true answer in yLabels
  */
 const answer = (x) => {
-  if (level === 1) return answerLevel1(x);
-  if (level === 2) return answerLevel2(x);
-  if (level === 3) return answerLevel3(x);
+  if (level === 1) return level1.answer(x);
+  if (level === 2) return level2.answer(x);
+  if (level === 3) return level3.answer(x);
 };
 
 /** Draw the case given by parameters x
  * @param x parameters of the case
  */
 const drawIt = (cnv, x) => {
-  if (level === 1) drawLevel1(cnv, x);
-  if (level === 2) drawLevel2(cnv, x);
-  if (level === 3) drawLevel3(cnv, x);
+  if (level === 1) level1.draw(cnv, x);
+  if (level === 2) level2.draw(cnv, x);
+  if (level === 3) level3.draw(cnv, x);
 };
 
 const makeComputerGuess = () => {
@@ -340,16 +317,16 @@ const setLevel = (l) => {
   level = l;
 
   if (l === 1) {
-    xLabels = labelsXLevel1;
-    yLabels = labelsYLevel1;
+    xLabels = level1.xLabels;
+    yLabels = level1.yLabels;
   }
   if (l === 2) {
-    xLabels = labelsXLevel2;
-    yLabels = labelsYLevel2;
+    xLabels = level2.xLabels;
+    yLabels = level2.yLabels;
   }
   if (l === 3) {
-    xLabels = labelsXLevel3;
-    yLabels = labelsYLevel3;
+    xLabels = level3.xLabels;
+    yLabels = level3.yLabels;
   }
   setButtonLabels(yLabels);
   resetStats();

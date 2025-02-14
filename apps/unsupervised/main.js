@@ -7,8 +7,6 @@ import {
   movecenter,
   moveright,
   gaussianRandom,
-  hslToRgb,
-  distVec,
   updateInfoLevel,
 } from "./helpers.js";
 
@@ -70,6 +68,8 @@ let W = [
   new Array(N[2]).fill(0), // Weights of layer 2
 ];
 
+window.W = W;
+
 /* Timers */
 
 // tN() = time since tN, in seconds
@@ -80,9 +80,6 @@ let W = [
  * tN in the original code.
  */
 const t = new Array(10).fill().map(() => performance.now());
-
-let lt0 = t[0];
-let lt3 = t[3];
 
 /** reset[i] () resets the timer t[i] */
 const reset = new Array(10).fill().map((e, i) => () => {
@@ -202,7 +199,6 @@ const restartLevel = () => {
   setMode("user");
   setLevel(level);
 
-  lt3 = elapsed[3]();
   resetStats();
   reset[0]();
   reset[1]();
@@ -227,9 +223,8 @@ const getX = () => {
   if (level === 3) return getXLevel3(L3Data);
 };
 
-/** For each parameter vector x, return whether
- * button1 has the correct answer (false), or
- * button2 has the correct answer (true).
+/** For each parameter vector x, return
+ * the index of the true answer in yLabels
  */
 const answer = (x) => {
   if (level === 1) return answerLevel1(x);
@@ -256,14 +251,15 @@ const makeComputerGuess = () => {
   predict([x]).then((ans) => {
     // then draw that guess
     const y = ans[0];
-    const guess = y[0] > 0.5 ? yLabels[0] : yLabels[1];
-    let guessLabel = "";
 
-    if (y[1] > 0.5 === answer(x)) {
-      guessLabel = guess.concat(` ✔`);
+    const guess = y[0] > 0.5 ? 0 : 1;
+    let guessLabel = guess === 0 ? yLabels[0] : yLabels[1];
+
+    if (guess === answer(x)) {
+      guessLabel = guessLabel.concat(` ✔`);
       correct();
     } else {
-      guessLabel = guess.concat(` ✗`);
+      guessLabel = guessLabel.concat(` ✗`);
       incorrect();
     }
 
@@ -272,7 +268,7 @@ const makeComputerGuess = () => {
 
     // and add the datum to the training data
     xs.push(x);
-    ys.push(answer(x) ? [1, 0] : [0, 1]);
+    ys.push(answer(x) === 0 ? [1, 0] : [0, 1]);
 
     // if model is not getting better, restart it
     cnt += 1;
@@ -293,7 +289,7 @@ const makeComputerGuess = () => {
     //   console.log(W);
     // });
 
-    console.log(W);
+    // console.log(W);
     if (!computing && xs.length > 1) {
       computing = true;
       console.log("computing");
@@ -374,8 +370,8 @@ const nextlevel = () => {
   setLevel(level);
 };
 
-document.getElementById("button1").onclick = () => click(false);
-document.getElementById("button2").onclick = () => click(true);
+document.getElementById("button1").onclick = () => click(0);
+document.getElementById("button2").onclick = () => click(1);
 document.getElementById("button3").onclick = restartLevel;
 document.getElementById("button4").onclick = nextlevel;
 document.getElementById("button5").onclick = () => setMode("computer");
@@ -384,7 +380,7 @@ document.getElementById("button5").onclick = () => setMode("computer");
 
 resethistory();
 restartLevel();
-setMode("computer");
+// setMode("computer");
 
 updateInfoLevel({ mode, level, ncorrect, nfalse, nstrike, required });
 

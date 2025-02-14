@@ -1,5 +1,9 @@
 import { distVec, hslToRgb, gaussianRandom } from "./helpers.js";
 
+/*
+answer(x) returns the index of the true answer in labelsYlevelN
+*/
+
 /** Level 1
  *  A circle blue or red
  */
@@ -14,10 +18,10 @@ const getXLevel1 = (timer) => {
   return hslToRgb(hue, 100, 50).concat(a);
 };
 
-const answerLevel1 = (x) => {
-  return distVec([x[0], x[1], x[2]], hslToRgb(0, 100, 50)) < 0.1;
-  //   ans = (|x_[1,2,3]-hue(0)|<.1);
-};
+const answerLevel1 = (x) =>
+  distVec([x[0], x[1], x[2]], hslToRgb(0, 100, 50)) < 0.1 // close to red
+    ? 1 // red
+    : 0; // blue
 
 const drawLevel1 = (cnv, x) => {
   const ctx = cnv.getContext("2d");
@@ -47,10 +51,10 @@ const getXLevel2 = (timer) => {
   // two pairs of coordinates, each one following a Lissajous figure.
 };
 
-const answerLevel2 = (x) => {
-  return x[0] - x[2] > 0;
-  //   ans = ((x_1-x_3)>0);
-};
+const answerLevel2 = (x) =>
+  x[0] - x[2] > 0 // green x coordinate smaller than purple x coordinate
+    ? 0 // left
+    : 1; // right
 
 const drawLevel2 = (cnv, x) => {
   const ctx = cnv.getContext("2d");
@@ -113,11 +117,10 @@ const getXLevel3 = (data) => {
   ];
 };
 
-const answerLevel3 = (x) => {
-  return (x[0] * 8) % 2 === 1;
-  //   randomint = x_1*8;
-  //   ans = mod(randomint,2)==1;
-};
+const answerLevel3 = (x) =>
+  (x[0] * 8) % 2 === 1 // odd
+    ? 1 // odd
+    : 0; // even
 
 const drawLevel3 = (cnv, x) => {
   const ctx = cnv.getContext("2d");

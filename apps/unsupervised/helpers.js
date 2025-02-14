@@ -70,6 +70,12 @@ function gaussianRandom(mean = 0, stdev = 1) {
 }
 
 // https://www.30secondsofcode.org/js/s/rgb-hex-hsl-hsb-color-format-conversion/
+/**Converts HSL color to RGB color.
+ * @param H hue in range [0, 360] (degrees)
+ * @param S saturation in range [0, 100] (percentage)
+ * @param L lightness in range [0, 100] (percentage)
+ * @returns [RGB] vector, all output values in range [0, 255].
+ * */
 const hslToRgb = (h, s, l) => {
   s /= 100;
   l /= 100;

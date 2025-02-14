@@ -29,7 +29,7 @@ let nfalse = 0;
 let ncorrect = 0;
 let required = 4; //TO DO: this parameter should be passed by url
 let mode = "user"; // "menu" || "user" || "computer"
-let level = 3; // 1 || 2 || 3   //TO DO: this parameter should be passed by url
+let level = 1; // 1 || 2 || 3   //TO DO: this parameter should be passed by url
 let xLabels = [];
 let yLabels = [];
 let computing = false;
@@ -47,31 +47,7 @@ let W = [
   new Array(N[1]).fill().map(() => new Array(N[2]).fill(0)), // Matrix connecting layer 1 and 2
   new Array(N[2]).fill(0), // Weights of layer 2
 ];
-
 window.W = W;
-
-/* Timers */
-
-// tN() = time since tN, in seconds
-// resetN() resets the variable tN to current time.
-// tN is initialised to current time (for all N)
-
-/** t[i] is a timestamp. Use 9 timestamps availables (1..9)
- * tN in the original code.
- */
-const t = new Array(10).fill().map(() => performance.now());
-
-/** reset[i] () resets the timer t[i] */
-const reset = new Array(10).fill().map((e, i) => () => {
-  t[i] = performance.now();
-});
-
-/** elapsed[i] () returns the time in seconds elapsed since the t[i] timestamp.
- * tN() in the original code.
- */
-const elapsed = new Array(10)
-  .fill()
-  .map((e, i) => () => (performance.now() - t[i]) / 1000);
 
 /** Get new input X from random seed */
 const generateRandomX = () => getX(1000 * Math.random());
@@ -79,16 +55,16 @@ const generateRandomX = () => getX(1000 * Math.random());
 /** Handler for the click event on button1 and button2.
  * @param ans boolean which is false for button1 and true for button2
  */
+
 const click = (ans) => {
-  //   console.log("click:", ans);
-  if (elapsed[9]() > 1) {
-    const x = getX(performance.now() / 1000);
-    // console.log("x:", x);
-    // console.log("answer:", answer(x));
-    answer(x) === ans ? correct() : incorrect();
-  }
   hide("button1", "button2");
-  reset[9]();
+  const x = getX(performance.now() / 1000);
+  answer(x) === ans ? correct() : incorrect();
+  show("result");
+  setTimeout(() => {
+    hide("result");
+    if (mode === "user") show("button1", "button2");
+  }, 1000);
 };
 
 /** Handle a correct answer */
@@ -115,7 +91,6 @@ const correct = () => {
 
   document.getElementById("result").innerHTML = msg;
   updateInfoLevel({ mode, level, ncorrect, nfalse, nstrike, required });
-  reset[9]();
 };
 
 /** Handle an incorrect answer */
@@ -172,10 +147,6 @@ const restartLevel = () => {
   setLevel(level);
 
   resetStats();
-  reset[0]();
-  reset[1]();
-  reset[2]();
-  reset[9]();
   msg = "";
 
   updateInfoLevel({ mode, level, ncorrect, nfalse, nstrike, required });
@@ -281,9 +252,6 @@ const setMode = (m) => {
     moveright("button3", "button4");
 
     resethistory();
-    reset[7]();
-    reset[8]();
-    reset[9]();
     guesser = setInterval(makeComputerGuess, 1000);
   }
 };
@@ -321,30 +289,14 @@ document.getElementById("button5").onclick = () => setMode("computer");
 
 resethistory();
 restartLevel();
-setMode("computer");
+// setMode("computer");
 
 updateInfoLevel({ mode, level, ncorrect, nfalse, nstrike, required });
 
 const mainAnimation = () => {
-  if (mode === "user") {
-    drawIt(mainCanvas, getX(performance.now() / 1000));
-
-    if (elapsed[9]() < 2) {
-      const a = (2 - elapsed[9]()) / 2;
-      document.getElementById("result").style.opacity = a;
-    }
-
-    if (elapsed[9]() > 1) show("button1", "button2");
-  }
-
-  if (mode === "menu") {
-    drawIt(mainCanvas, getX(performance.now() / 1000));
-  }
-
-  if (mode === "computer") {
-    drawNetwork(N, W, xLabels, yLabels);
-  }
-
+  if (mode === "user") drawIt(mainCanvas, getX(performance.now() / 1000));
+  if (mode === "menu") drawIt(mainCanvas, getX(performance.now() / 1000));
+  if (mode === "computer") drawNetwork(N, W, xLabels, yLabels);
   requestAnimationFrame(mainAnimation);
 };
 

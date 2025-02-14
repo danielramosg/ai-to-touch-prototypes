@@ -6,14 +6,10 @@ import {
   show,
   movecenter,
   moveright,
-  gaussianRandom,
   updateInfoLevel,
 } from "./helpers.js";
-
 import { level1, level2, level3 } from "./levels.js";
-
 import { drawNetwork } from "./network.js";
-
 import { train, predict, getWeights, resetWeights } from "./tf-helpers.js";
 
 const mainCanvas = document.getElementById("mainCanvas");
@@ -33,7 +29,7 @@ let nfalse = 0;
 let ncorrect = 0;
 let required = 4; //TO DO: this parameter should be passed by url
 let mode = "user"; // "menu" || "user" || "computer"
-let level = 1; // 1 || 2 || 3   //TO DO: this parameter should be passed by url
+let level = 3; // 1 || 2 || 3   //TO DO: this parameter should be passed by url
 let xLabels = [];
 let yLabels = [];
 let computing = false;
@@ -77,26 +73,18 @@ const elapsed = new Array(10)
   .fill()
   .map((e, i) => () => (performance.now() - t[i]) / 1000);
 
-/** Set the timers to random values and get new input X */
-const generateRandomX = () => {
-  t[0] = 1000 * Math.random();
-  t[1] = 500 * Math.random();
-  t[2] = 1000 * Math.random();
-  t[3] = 500 * Math.random();
-  t[4] = 500 * Math.random();
-  t[5] = 500 * Math.random();
-  return getX();
-};
+/** Get new input X from random seed */
+const generateRandomX = () => getX(1000 * Math.random());
 
 /** Handler for the click event on button1 and button2.
  * @param ans boolean which is false for button1 and true for button2
  */
 const click = (ans) => {
-  console.log("click:", ans);
+  //   console.log("click:", ans);
   if (elapsed[9]() > 1) {
-    const x = getX();
-    console.log("x:", x);
-    console.log("answer:", answer(x));
+    const x = getX(performance.now() / 1000);
+    // console.log("x:", x);
+    // console.log("answer:", answer(x));
     answer(x) === ans ? correct() : incorrect();
   }
   hide("button1", "button2");
@@ -194,10 +182,10 @@ const restartLevel = () => {
 };
 
 /** Get a new data point */
-const getX = () => {
-  if (level === 1) return level1.getX();
-  if (level === 2) return level2.getX();
-  if (level === 3) return level3.getX();
+const getX = (seed) => {
+  if (level === 1) return level1.getX(seed);
+  if (level === 2) return level2.getX(seed);
+  if (level === 3) return level3.getX(seed);
 };
 
 /** For each parameter vector x, return
@@ -269,7 +257,7 @@ const makeComputerGuess = () => {
     // console.log(W);
     if (!computing && xs.length > 1) {
       computing = true;
-      console.log("computing");
+      //   console.log("computing");
 
       train(xs, ys)
         .then(() => getWeights())
@@ -357,13 +345,13 @@ document.getElementById("button5").onclick = () => setMode("computer");
 
 resethistory();
 restartLevel();
-// setMode("computer");
+setMode("computer");
 
 updateInfoLevel({ mode, level, ncorrect, nfalse, nstrike, required });
 
 const mainAnimation = () => {
   if (mode === "user") {
-    drawIt(mainCanvas, getX());
+    drawIt(mainCanvas, getX(performance.now() / 1000));
 
     if (elapsed[9]() < 2) {
       const a = (2 - elapsed[9]()) / 2;
@@ -374,7 +362,7 @@ const mainAnimation = () => {
   }
 
   if (mode === "menu") {
-    drawIt(mainCanvas, getX());
+    drawIt(mainCanvas, getX(performance.now() / 1000));
   }
 
   if (mode === "computer") {

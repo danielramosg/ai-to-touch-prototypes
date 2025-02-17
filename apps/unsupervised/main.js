@@ -23,17 +23,24 @@ const mainCanvas = document.getElementById("mainCanvas");
 //   required: 4,
 // };
 
-let msg = "";
 let nstrike = 0;
 let nfalse = 0;
 let ncorrect = 0;
 let required = 4; //TO DO: this parameter should be passed by url
 let mode = "user"; // "menu" || "user" || "computer"
 let level = 1; // 1 || 2 || 3   //TO DO: this parameter should be passed by url
+
 let xLabels = [];
 let yLabels = [];
 let computing = false;
 let guesser;
+
+//training data
+let xs = [];
+let ys = [];
+
+let cimgcnt = 0;
+let cnt = 0;
 
 /* Neural Network (nn) */
 
@@ -42,15 +49,11 @@ const N = [4, 6, 2];
 
 /** Weights & biases */
 let W = [
-  new Array(N[0]).fill().map(() => new Array(N[1]).fill(0)), // Matrix connecting layer 0 and 1
-  new Array(N[1]).fill(0), // Weights of layer 1
-  new Array(N[1]).fill().map(() => new Array(N[2]).fill(0)), // Matrix connecting layer 1 and 2
-  new Array(N[2]).fill(0), // Weights of layer 2
+  new Array(N[0]).fill().map(() => new Array(N[1]).fill(0)), // Matrix connecting layer 0 and 1 (weights)
+  new Array(N[1]).fill(0), // Biases of layer 1
+  new Array(N[1]).fill().map(() => new Array(N[2]).fill(0)), // Matrix connecting layer 1 and 2 (weights)
+  new Array(N[2]).fill(0), // Biases of layer 2
 ];
-window.W = W;
-
-/** Get new input X from random seed */
-const generateRandomX = () => getX(1000 * Math.random());
 
 /** Handler for the click event on button1 and button2.
  * @param ans boolean which is false for button1 and true for button2
@@ -71,40 +74,43 @@ const click = (ans) => {
 const correct = () => {
   ncorrect += 1;
   nstrike += 1;
-  // if(mode=="user",
-  //   playsin(440*2^(nstrike/12), damp->4, line->2, amp->.2);
-  // );
-  const emojis = ["😃", "😄", "😀", "😁", "🙃", "😊", "🤗"];
-  msg = "your answer was correct " + emojis[Math.floor(5 * Math.random())];
-
-  if (nstrike > 1) {
-    msg = msg.concat(
-      ` (${ordinal(nstrike)} time) <br>
-      Can you make ${cardinal(required)} correct guesses in a row?`
-    );
-  }
-
-  if (nstrike >= required && mode === "user") {
-    msg = "";
-    setMode("menu");
-  }
-
-  document.getElementById("result").innerHTML = msg;
   updateInfoLevel({ mode, level, ncorrect, nfalse, nstrike, required });
+
+  if (mode === "user") {
+    //   playsin(440*2^(nstrike/12), damp->4, line->2, amp->.2);
+    const emojis = ["😃", "😄", "😀", "😁", "🙃", "😊", "🤗"];
+    let msg =
+      "your answer was correct " + emojis[Math.floor(5 * Math.random())];
+
+    if (nstrike > 1) {
+      msg = msg.concat(
+        ` (${ordinal(nstrike)} time) <br>
+      Can you make ${cardinal(required)} correct guesses in a row?`
+      );
+    }
+
+    if (nstrike >= required && mode === "user") {
+      msg = "";
+      setMode("menu");
+    }
+
+    document.getElementById("result").innerHTML = msg;
+  }
 };
 
 /** Handle an incorrect answer */
 const incorrect = () => {
-  const emojis = ["😢", "🙄", "😕", "😮", "😞"];
-  msg = "your answer was not correct " + emojis[Math.floor(5 * Math.random())];
-  // if(mode=="user",
-  //   playsin(440*2^(-5/12), damp->4, line->2, amp->.1);
-  // );
-  document.getElementById("result").innerHTML = msg;
-
-  nstrike = 0;
   nfalse += 1;
+  nstrike = 0;
   updateInfoLevel({ mode, level, ncorrect, nfalse, nstrike, required });
+
+  if (mode === "user") {
+    //   playsin(440*2^(-5/12), damp->4, line->2, amp->.1);
+    const emojis = ["😢", "🙄", "😕", "😮", "😞"];
+    const msg =
+      "your answer was not correct " + emojis[Math.floor(5 * Math.random())];
+    document.getElementById("result").innerHTML = msg;
+  }
 };
 
 /** Array of cImg items.
@@ -124,13 +130,6 @@ let cImg = new Array(5).fill(null).map(() => {
   return { cnv: cnv, txt: txt };
 });
 
-//training data
-let xs = [];
-let ys = [];
-
-let cimgcnt = 0;
-let cnt = 0;
-
 /** Reset Neural Network and history of saved observations */
 const resethistory = () => {
   cimgcnt = 0;
@@ -142,13 +141,9 @@ const resethistory = () => {
 };
 
 const restartLevel = () => {
-  //   resetclock();
   setMode("user");
   setLevel(level);
-
   resetStats();
-  msg = "";
-
   updateInfoLevel({ mode, level, ncorrect, nfalse, nstrike, required });
 };
 
@@ -167,8 +162,8 @@ const drawIt = (cnv, x) => levels[level].draw(cnv, x);
 const makeComputerGuess = () => {
   cimgcnt = (cimgcnt + 1) % 5;
 
-  // generate a new datum
-  const x = generateRandomX();
+  // Get new datum X from random seed
+  const x = getX(1000 * Math.random());
 
   //make some guess for the datum based on nn
   predict([x]).then((ans) => {
@@ -222,6 +217,7 @@ const makeComputerGuess = () => {
         .then((d) => {
           W = d;
           computing = false;
+          window.W = W;
         });
     }
   });
@@ -251,6 +247,7 @@ const setMode = (m) => {
     show("button3", "button4", "cImgContainer", "infoLevel");
     moveright("button3", "button4");
 
+    resetWeights();
     resethistory();
     guesser = setInterval(makeComputerGuess, 1000);
   }
@@ -289,7 +286,7 @@ document.getElementById("button5").onclick = () => setMode("computer");
 
 resethistory();
 restartLevel();
-// setMode("computer");
+setMode("computer");
 
 updateInfoLevel({ mode, level, ncorrect, nfalse, nstrike, required });
 

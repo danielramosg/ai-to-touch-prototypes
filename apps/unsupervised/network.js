@@ -26,7 +26,7 @@ const drawNetwork = (N, W, xLabels, yLabels) => {
         const w = W[2 * k][j0][j1];
         // const w = -0.09; //test
         const lw = Math.min(0.1, 4 * w * w);
-        if (lw > 0) {
+        if (lw > 0.01) {
           ctx.lineWidth = lw;
           ctx.strokeStyle = `hsl(${w > 0 ? 0.3 * 360 : 0.8 * 360},100%,50%)`; // green, purple
           ctx.beginPath();

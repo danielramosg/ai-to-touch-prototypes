@@ -42,13 +42,19 @@
         forall(1..5,k,
           createimage("cimg"+k,160,90);
         );
+
+        /** computerguess is an array of strings.
+        * Each string is a label of the computer guessed option,
+        * plus a sign "✔" or "✗" depending on whether the
+        * guess is correct or not.
+        * */
         computerguess = apply(1..5,"");
         cimgcnt = 0;
         xs = [];
         ys = [];
         cnt = 0;
         resetweights();
-        ncorrect = nfalse = nstrike = 0;
+        ncorrect = nfalse = nstrike = 0; // should be nstreak ?
 
       );
       resethistory();
@@ -92,6 +98,17 @@
       forall(0..9,k,
         parse("t"+k+"() := ( seconds()-t"+k+";);reset"+k+"() := (t"+k+" = seconds();); t"+k+" = seconds();");
       );
+
+      // t0() determines getx for levels 1 and 3 (new case every 2 seconds)
+      // t1() is not used
+      // t2() is not used
+      // t3() determines getx for level 2 (continuously changing case)
+      // t4() is not used
+      // t5() is not used
+      // t6() is not used
+      // t7() is used in the image history array
+      // t8() is used to limit how often training happens
+      // t9() is used in the result message and buttons fading
 
       lt0 = t0;
 
@@ -172,18 +189,17 @@
         mode = "computer";
       );
 
-
-
       randomint = 3;
       dir = randomnormal();
 
-
-
       getx() := (
+        //print("getx called");
         regional(x);
         if(level==1,
           cval = if(mod(t0()/2,2)>1,1,0);
-          x = hue(cval*sqrt(3)) ++ [mod(t0()/2,1)];
+          //x = hue(cval*sqrt(3)) ++ [mod(t0()/2,1)];
+          x = hue(cval*0.73) ++ [mod(t0()/2,1)];
+          // 0.73 is the hue of our blue. 0 is the hue of red.
         );
         if(level==2,
           x = 4*[sin(t3()/2), cos(t3())]++4*[sin(t3()),cos(t3()/1.1234)];
@@ -200,6 +216,7 @@
       );
 
       answer(x) := (
+        // print("answer called");
         regional(ans);
         if(level==1,
           ans = (|x_[1,2,3]-hue(0)|<.1);
@@ -216,6 +233,7 @@
 
       // draw the case given by parameters x
       drawit(x):= (
+        //print("drawit called");
           if(level==1,
             fillcircle((0,0),4*x_4+1, alpha->1-(x_4-.5)^2*4, color->x_[1,2,3]);
           );
@@ -227,7 +245,7 @@
             fillcircle(x_[1,2], color->[1,1,1], 1.5);
             fillcircle(x_[1,2], color->[.5,1,.1], 1.4);
             if(mode=="user",
-              //  x = 4*[sin(t3()/2), cos(t3())]++4*[sin(t3()),cos(t3()/1.1234)]
+              //  recall that x = 4*[sin(t3()/2), cos(t3())]++4*[sin(t3()),cos(t3()/1.1234)]
               v1 = |[cos(t3()/2)/2, sin(t3())]|;
               v2 = |[cos(t3()),sin(t3()/1.1234)/1.1234]|;
               playsin(300*v1, line->"x12", amp->.1);
@@ -240,7 +258,6 @@
             param = x_3;
             dir = x_2;
             forall(0..randomint, k,
-              //param =t0()/2;
               draw((2+param)*gauss(exp(2*pi*i*k/randomint+i*dir*.7*(param+10))), alpha->1-.9*(param-.5)^2*4, color->hue(x_4), size->30);
             );
           );
@@ -251,6 +268,8 @@
         restart();
     </script>
     <script id="csdraw" type="text/x-cindyscript">
+      //print(mode);
+      //fillcircle(relativepoint((0.3,.9)), color->[1,0,0], 0.1);
 
       if(mode!="menu",
         rp = relativepoint((0.3,.9));
@@ -274,6 +293,7 @@
       if(mode=="user",
         drawit(getx());
 
+        //fillcircle(relativepoint((0.5,.2)), color->[1,0,0], 0.1);
 
         if(t9()<2,
           a = (2-t9())/2;
@@ -284,6 +304,7 @@
           javascript("show([1,2])");
         );
       );
+
       if(mode=="computer",
         //draw network
         forall(1..2, k,
@@ -325,7 +346,7 @@
 
         if(t7()>1, //generate new random image
           x = generaterandomx();
-          lx = x;
+          // lx = x; // not used
           cimgcnt = mod(cimgcnt,5) + 1;
           clearimage("cimg"+cimgcnt);
           scale = 1.5;

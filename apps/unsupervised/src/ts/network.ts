@@ -1,6 +1,12 @@
 import { Level } from "./levels.ts";
 import { train, predict, getWeights, resetWeights } from "./tf-helpers.ts";
 
+type historyItem = {
+  container: HTMLDivElement; // container
+  cnv: HTMLCanvasElement; // canvas
+  txt: HTMLDivElement; // text div
+};
+
 /** Given a neural network N, return the layout position of neuron j of layer k. */
 const pos = (N: number[], k: number, j: number) => [
   (k - 1) * 5,
@@ -12,7 +18,7 @@ class Network {
   app: any;
   cimgcnt: number;
   cnt: number;
-  cImg: { cnv: HTMLCanvasElement; txt: HTMLDivElement }[];
+  cImg: historyItem[];
   xs: number[][]; //training data (xs)
   ys: number[][]; //training data (ys)
   N: number[];
@@ -51,7 +57,7 @@ class Network {
     /** Array of cImg items.
      * The last five data points in the computer-generated
      * data are displayed. */
-    this.cImg = new Array(5).fill(null).map(() => {
+    this.cImg = new Array(8).fill(null).map(() => {
       const item = document.createElement("div"); // item container
       const cnv = document.createElement("canvas"); // image
       const txt = document.createElement("div"); // label (guess option plus a sign "✔" or "✗")
@@ -63,7 +69,7 @@ class Network {
       (document.getElementById("cImgContainer") as HTMLDivElement).appendChild(
         item
       );
-      return { cnv: cnv, txt: txt };
+      return { container: item, cnv: cnv, txt: txt };
     });
   }
 
@@ -80,9 +86,33 @@ class Network {
     this.app.resetStats();
   }
 
-  /** Make guess, act consequently (correct/incorrect), add training data, and train network.*/
-  makeComputerGuess(l) {
-    this.cimgcnt = (this.cimgcnt + 1) % 5;
+  animateHistoryItem(item: historyItem) {
+    console.log("animating: ", item);
+    item.container.style.left = "-50%";
+    item.container.style.opacity = "1";
+    const timer0 = performance.now();
+
+    const animation = () => {
+      const t = performance.now() - timer0;
+      if (t < 5000) {
+        item.container.style.left = `${(-50 + (200 * t) / 5000).toString()}%`;
+        if (t > 4000) {
+          item.container.style.opacity = (5 - t / 1000).toString();
+        }
+        requestAnimationFrame(animation);
+      } else {
+        item.container.style.opacity = "0";
+      }
+    };
+
+    animation();
+  }
+
+  /** Make guess, act consequently (correct/incorrect), add training data, and train network.
+   * @param l index of the level
+   */
+  makeComputerGuess(l: number) {
+    this.cimgcnt = (this.cimgcnt + 1) % 8;
 
     // Get new datum X from random seed
     const x = this.levels[l].getX(1000 * Math.random());
@@ -105,6 +135,8 @@ class Network {
 
       this.levels[l].draw(this.cImg[this.cimgcnt].cnv, x);
       this.cImg[this.cimgcnt].txt.innerHTML = guessLabel;
+
+      this.animateHistoryItem(this.cImg[this.cimgcnt]);
 
       // and add the datum to the training data
       this.xs.push(x);

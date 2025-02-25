@@ -1,3 +1,4 @@
+import "@fontsource/quicksand";
 import { levels } from "./levels.js";
 import { App } from "./app.ts";
 

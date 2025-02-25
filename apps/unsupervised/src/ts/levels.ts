@@ -1,17 +1,26 @@
 import { distVec, hslToRgb, gaussianRandom } from "./helpers.js";
 
-// class Level {
-//   xLabels;
-//   yLabels;
-//   getX;
-//   answer; // returns the index of the true answer in labelsYlevelN
-//   draw;
-// }
+type Level = {
+  xLabels: string[];
+  yLabels: string[];
+  getX: (seed: number) => number[];
+  answer: (x: number[]) => number; // returns the index of the true answer in labelsYlevelN
+  draw: (cnv: HTMLCanvasElement, x: number[]) => void;
+  _state?: any;
+};
+
+const level0: Level = {
+  xLabels: [],
+  yLabels: [],
+  getX: (t) => [0, 0, 0, 0],
+  answer: (x) => 0,
+  draw: (cnv, x) => {},
+};
 
 /** Level 1.
  *  A circle blue or red
  */
-const level1 = {
+const level1: Level = {
   xLabels: ["color (red)", "color (green)", "color (blue)", "size"],
   yLabels: ["biru", "merah"], // blue red in Indonesian
   //   stats: [0, 0], // to check if sampling is uniform
@@ -34,7 +43,7 @@ const level1 = {
   },
 
   draw(cnv, x) {
-    const ctx = cnv.getContext("2d");
+    const ctx = cnv.getContext("2d") as CanvasRenderingContext2D;
     ctx.clearRect(0, 0, 800, 500);
     ctx.beginPath();
     ctx.fillStyle = `rgba(${x
@@ -50,7 +59,7 @@ const level1 = {
  *  Two circles, green and purple, joined by a segment.
  *  Is the green circle the one on the right or on the left?
  */
-const level2 = {
+const level2: Level = {
   xLabels: ["x purple", "y purple", "x green", "y green"],
   yLabels: ["kiri", "kanan"], // left right in Indonesian
   //   stats: [0, 0], // to check if sampling is uniform
@@ -74,7 +83,7 @@ const level2 = {
   },
 
   draw(cnv, x) {
-    const ctx = cnv.getContext("2d");
+    const ctx = cnv.getContext("2d") as CanvasRenderingContext2D;
     ctx.clearRect(0, 0, 800, 500);
     ctx.setTransform(40, 0, 0, 40, 400, 250);
 
@@ -117,33 +126,35 @@ const level2 = {
  *  A certain number of circles appear rotating.
  *  Is the number of circles odd or even?
  */
-const level3 = {
+const level3: Level = {
   xLabels: ["number", "rotation", "size", "color"],
   yLabels: ["genap", "gasal"], // even odd in Indonesian
   //   stats: [0, 0, 0, 0], // to check if sampling is uniform
 
-  randomint: 3,
-  dir: gaussianRandom(),
-  lastT: 0,
+  _state: {
+    randomint: 3,
+    dir: gaussianRandom(),
+    lastT: 0,
+  },
 
   getX(t) {
     // when successive calls are in successive times, randomint and dir should be constant for 2 seconds.
     // when calling with random seed, randomint and dir should be random.
-    if (Math.floor(t / 2) !== Math.floor(this.lastT / 2)) {
+    if (Math.floor(t / 2) !== Math.floor(this._state.lastT / 2)) {
       // trigger every two seconds
-      this.randomint = 2 + Math.floor(Math.random() * 4); // an integer between 2 and 5 inclusive
-      this.dir = gaussianRandom(); // direction of turning
+      this._state.randomint = 2 + Math.floor(Math.random() * 4); // an integer between 2 and 5 inclusive
+      this._state.dir = gaussianRandom(); // direction of turning
     }
-    this.lastT = t;
+    this._state.lastT = t;
 
-    // this.stats[this.randomint - 2] += 1;
+    // this.stats[this._state.randomint - 2] += 1;
     // console.log(this.stats);
 
     return [
-      this.randomint / 8,
-      this.dir,
+      this._state.randomint / 8,
+      this._state.dir,
       (t / 2) % 1, // parameter determining radius, rotation speed, and alpha
-      (this.randomint * 0.43 + 0.3) % 1, // parameter determining hue
+      (this._state.randomint * 0.43 + 0.3) % 1, // parameter determining hue
     ];
   },
 
@@ -154,7 +165,7 @@ const level3 = {
   },
 
   draw(cnv, x) {
-    const ctx = cnv.getContext("2d");
+    const ctx = cnv.getContext("2d") as CanvasRenderingContext2D;
 
     const randomint = x[0] * 8;
     const param = x[2];
@@ -182,5 +193,7 @@ const level3 = {
   },
 };
 
-const levels = [null, level1, level2, level3];
+const levels = [level0, level1, level2, level3];
+
+export type { Level };
 export { levels };

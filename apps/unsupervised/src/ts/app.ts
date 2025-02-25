@@ -1,22 +1,22 @@
+import { ordinal, cardinal } from "./helpers.ts";
 import {
-  ordinal,
-  cardinal,
   setButtonLabels,
   hide,
   show,
   movecenter,
   moveright,
-} from "./helpers.js";
-import { Network } from "./network.js";
+} from "./ui-helpers.ts";
+import { Network } from "./network.ts";
+import type { Level } from "./levels.ts";
 
 class App {
-  nstrike;
-  nfalse;
-  ncorrect;
-  required;
-  mode;
-  level;
-  levels;
+  nstrike: number;
+  nfalse: number;
+  ncorrect: number;
+  required: number;
+  mode: "user" | "computer" | "menu";
+  level: number;
+  levels: Level[];
 
   net;
   guesser;
@@ -38,11 +38,12 @@ class App {
     this.net = new Network(this.levels, this);
     this.setLevel(1);
 
-    document.getElementById("button1").onclick = () => this.click(0);
-    document.getElementById("button2").onclick = () => this.click(1);
-    document.getElementById("button3").onclick = () => this.restartLevel();
-    document.getElementById("button4").onclick = () => this.nextlevel();
-    document.getElementById("button5").onclick = () => this.setMode("computer");
+    document.getElementById("button1")!.onclick = () => this.click(0);
+    document.getElementById("button2")!.onclick = () => this.click(1);
+    document.getElementById("button3")!.onclick = () => this.restartLevel();
+    document.getElementById("button4")!.onclick = () => this.nextlevel();
+    document.getElementById("button5")!.onclick = () =>
+      this.setMode("computer");
   }
 
   /** Handler for the click event on button1 and button2.*/
@@ -81,7 +82,7 @@ class App {
         this.setMode("menu");
       }
 
-      document.getElementById("result").innerHTML = msg;
+      document.getElementById("result")!.innerHTML = msg;
     }
   }
 
@@ -96,7 +97,7 @@ class App {
       const emojis = ["😢", "🙄", "😕", "😮", "😞"];
       const msg =
         "your answer was not correct " + emojis[Math.floor(5 * Math.random())];
-      document.getElementById("result").innerHTML = msg;
+      document.getElementById("result")!.innerHTML = msg;
     }
   }
 
@@ -148,12 +149,12 @@ class App {
   }
 
   updateInfoLevel() {
-    document.getElementById("levelLabel").innerHTML = this.level;
-    document.getElementById("correctLabel").innerHTML = this.ncorrect;
-    document.getElementById("incorrectLabel").innerHTML = this.nfalse;
-    document.getElementById("correctRowLabel").innerHTML = this.nstrike
-      .toString()
-      .concat(this.mode === "user" ? `/${this.required}` : ``);
+    document.getElementById("levelLabel")!.innerHTML = String(this.level);
+    document.getElementById("correctLabel")!.innerHTML = String(this.ncorrect);
+    document.getElementById("incorrectLabel")!.innerHTML = String(this.nfalse);
+    document.getElementById("correctRowLabel")!.innerHTML = String(
+      this.nstrike
+    ).concat(this.mode === "user" ? `/${this.required}` : ``);
   }
 
   resetStats() {

@@ -1,7 +1,5 @@
 // https://js.tensorflow.org/api/latest/
-// import * as tf from "@tensorflow/tfjs";
-// to do: use import here and remove the script in the html file. Use Parcel to package
-// note: uncomment the import to get VS Code function documentation
+import * as tf from "@tensorflow/tfjs";
 
 const model = tf.sequential({
   layers: [
@@ -27,7 +25,7 @@ model.compile({
   loss: "meanSquaredError",
 });
 
-const train = (xs, ys) => {
+const train = (xs: number[][], ys: number[][]) => {
   return model.fit(
     tf.tensor2d(xs, [xs.length, 4]),
     tf.tensor2d(ys, [ys.length, 2]),
@@ -39,8 +37,8 @@ const train = (xs, ys) => {
   );
 };
 
-const predict = (xs) => {
-  return model.predict(tf.tensor2d(xs, [xs.length, 4])).array();
+const predict = (xs: number[][]) => {
+  return (model.predict(tf.tensor2d(xs, [xs.length, 4])) as tf.Tensor).array();
 };
 
 const getWeights = () => {
@@ -49,8 +47,8 @@ const getWeights = () => {
 
 const resetWeights = () => {
   model.weights.forEach((w) => {
-    const newVals = tf.randomNormal(w.shape);
-    w.val.assign(newVals);
+    const newVals = tf.randomNormal(w.shape as number[]);
+    w.write(newVals);
   });
 };
 

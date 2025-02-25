@@ -1,23 +1,27 @@
-import { train, predict, getWeights, resetWeights } from "./tf-helpers.js";
+import { Level } from "./levels.ts";
+import { train, predict, getWeights, resetWeights } from "./tf-helpers.ts";
 
 /** Given a neural network N, return the layout position of neuron j of layer k. */
-const pos = (N, k, j) => [
+const pos = (N: number[], k: number, j: number) => [
   (k - 1) * 5,
   (3 * (j - (N[k] - 1) / 2)) / (Math.sqrt(N[k]) - 0.5),
 ];
 
 class Network {
-  levels;
-  cimgcnt;
-  cImg; // {cnv: HTMLCanvasElement, txt: HTMLDivElement}[]
-  xs; //training data (xs)
-  ys; //training data (ys)
-  N;
-  W;
+  levels: Level[];
+  app: any;
+  cimgcnt: number;
+  cnt: number;
+  cImg: { cnv: HTMLCanvasElement; txt: HTMLDivElement }[];
+  xs: number[][]; //training data (xs)
+  ys: number[][]; //training data (ys)
+  N: number[];
+  W: number[][];
+  computing: boolean;
 
   //   nets;
 
-  constructor(levels, app) {
+  constructor(levels: Level[], app: any) {
     this.levels = levels;
     this.app = app;
 
@@ -29,9 +33,9 @@ class Network {
 
     /** Weights & biases */
     this.W = [
-      new Array(this.N[0]).fill().map(() => new Array(this.N[1]).fill(0)), // Matrix connecting layer 0 and 1 (weights)
+      new Array(this.N[0]).fill(0).map(() => new Array(this.N[1]).fill(0)), // Matrix connecting layer 0 and 1 (weights)
       new Array(this.N[1]).fill(0), // Biases of layer 1
-      new Array(this.N[1]).fill().map(() => new Array(this.N[2]).fill(0)), // Matrix connecting layer 1 and 2 (weights)
+      new Array(this.N[1]).fill(0).map(() => new Array(this.N[2]).fill(0)), // Matrix connecting layer 1 and 2 (weights)
       new Array(this.N[2]).fill(0), // Biases of layer 2
     ];
 
@@ -53,10 +57,12 @@ class Network {
       const txt = document.createElement("div"); // label (guess option plus a sign "✔" or "✗")
       cnv.width = 800;
       cnv.height = 500;
-      item.classList = "cImgItem";
+      item.classList.add("cImgItem");
       item.appendChild(cnv);
       item.appendChild(txt);
-      document.getElementById("cImgContainer").appendChild(item);
+      (document.getElementById("cImgContainer") as HTMLDivElement).appendChild(
+        item
+      );
       return { cnv: cnv, txt: txt };
     });
   }
@@ -133,23 +139,23 @@ class Network {
         train(this.xs, this.ys)
           .then(() => getWeights())
           .then((d) => {
-            this.W = d;
+            this.W = d as number[][];
             this.computing = false;
             console.log("ended computing");
-            window.W = this.W;
+            // window.W = this.W;
           });
       }
     });
   }
 
   /** Draw the neural network diagram */
-  drawNetwork(l) {
+  drawNetwork(l: number) {
     const N = this.N;
     const W = this.W;
     const xLabels = this.levels[l].xLabels;
     const yLabels = this.levels[l].yLabels;
-    const cnv = document.getElementById("mainCanvas");
-    const ctx = cnv.getContext("2d");
+    const cnv = document.getElementById("mainCanvas") as HTMLCanvasElement;
+    const ctx = cnv.getContext("2d") as CanvasRenderingContext2D;
     ctx.clearRect(0, 0, 800, 500);
     ctx.setTransform(40, 0, 0, 40, 400, 250);
     ctx.fillStyle = "grey";
@@ -178,7 +184,7 @@ class Network {
     for (let k = 0; k < 3; k += 1) {
       for (let j = 0; j < N[k]; j += 1) {
         const p = pos(N, k, j);
-        const w = k > 0 ? W[2 * k - 1] : 0;
+        const w = k > 0 ? W[2 * k - 1][j] : 0;
         //   const w = 0.5; // test
 
         ctx.fillStyle = "grey";

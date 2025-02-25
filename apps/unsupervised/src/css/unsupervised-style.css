@@ -1,0 +1,251 @@
+/* quicksand-regular - latin */
+@font-face {
+  font-family: "Quicksand";
+  font-style: normal;
+  font-weight: 400;
+  src: url("../fonts/quicksand/quicksand-v9-latin-regular.eot");
+  /* IE9 Compat Modes */
+  src: local("Quicksand Regular"), local("Quicksand-Regular"),
+    url("../fonts/quicksand/quicksand-v9-latin-regular.eot?#iefix")
+      format("embedded-opentype"),
+    /* IE6-IE8 */ url("../fonts/quicksand/quicksand-v9-latin-regular.woff2")
+      format("woff2"),
+    /* Super Modern Browsers */
+      url("../fonts/quicksand/quicksand-v9-latin-regular.woff") format("woff"),
+    /* Modern Browsers */
+      url("../fonts/quicksand/quicksand-v9-latin-regular.ttf")
+      format("truetype"),
+    /* Safari, Android, iOS */
+      url("../fonts/quicksand/quicksand-v9-latin-regular.svg#Quicksand")
+      format("svg");
+  /* Legacy iOS */
+}
+
+/* quicksand-700 - latin */
+@font-face {
+  font-family: "Quicksand";
+  font-style: normal;
+  font-weight: 700;
+  src: url("../fonts/quicksand/quicksand-v9-latin-700.eot");
+  /* IE9 Compat Modes */
+  src: local("Quicksand Bold"), local("Quicksand-Bold"),
+    url("../fonts/quicksand/quicksand-v9-latin-700.eot?#iefix")
+      format("embedded-opentype"),
+    /* IE6-IE8 */ url("../fonts/quicksand/quicksand-v9-latin-700.woff2")
+      format("woff2"),
+    /* Super Modern Browsers */
+      url("../fonts/quicksand/quicksand-v9-latin-700.woff") format("woff"),
+    /* Modern Browsers */ url("../fonts/quicksand/quicksand-v9-latin-700.ttf")
+      format("truetype"),
+    /* Safari, Android, iOS */
+      url("../fonts/quicksand/quicksand-v9-latin-700.svg#Quicksand")
+      format("svg");
+  /* Legacy iOS */
+}
+
+body {
+  font-family: Quicksand, Helvetica, Arial, sans-serif;
+  margin: 0px;
+  padding: 0px;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgb(10, 0, 30);
+  color: white;
+  font-size: 3vw;
+}
+
+#infoLevel {
+  position: fixed;
+  font-size: 0.6em;
+  top: 1.5em;
+  left: 3em;
+}
+
+#infoLevel table {
+  td {
+    padding-right: 0.5em;
+  }
+  td:first-child {
+    text-align: right;
+  }
+}
+
+#mainCanvas {
+  display: block;
+  position: relative;
+  height: 60vh;
+  top: 20vh;
+  /* border: 1px solid red; */
+}
+
+#result {
+  display: block;
+  position: fixed;
+  top: 72vh;
+  text-align: center;
+  /* border: 1px solid red; */
+  padding-left: 2em;
+  padding-right: 2em;
+  width: 100%;
+}
+
+/* Carousel of computer images */
+/* https://stackoverflow.com/questions/48799372/is-it-possible-to-continuously-animate-a-carousel-of-divs */
+
+#cImgContainer {
+  position: fixed;
+  display: block;
+  /* display: none; */
+
+  bottom: 10px;
+  left: 0;
+  width: 60%;
+  height: 18vh;
+
+  /* border: 1px solid red; */
+  box-sizing: border-box;
+  /* overflow-x: hidden; */
+}
+
+.cImgItem {
+  position: absolute;
+  /* border: 1px solid blue; */
+  width: 5em;
+  height: 100%;
+  animation: slide-item 5s infinite;
+  animation-timing-function: linear;
+  /* animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1); */
+  opacity: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.cImgItem div {
+  text-align: center;
+}
+
+.cImgItem canvas {
+  width: 100%;
+}
+
+.cImgItem:nth-child(2) {
+  animation-delay: 1s;
+}
+.cImgItem:nth-child(3) {
+  animation-delay: 2s;
+}
+.cImgItem:nth-child(4) {
+  animation-delay: 3s;
+}
+.cImgItem:nth-child(5) {
+  animation-delay: 4s;
+}
+
+/* @keyframes slide-item {
+  0% {
+    left: 150%;
+    opacity: 1;
+  }
+  36% {
+    left: 50%;
+    opacity: 1;
+  }
+  72% {
+    left: -50%;
+    opacity: 1;
+  }
+  100% {
+    left: -50%;
+  }
+} */
+
+@keyframes slide-item {
+  0% {
+    left: -50%;
+    opacity: 1;
+  }
+  75% {
+    left: 100%;
+    opacity: 1;
+  }
+  100% {
+    left: 150%;
+    opacity: 0;
+  }
+}
+
+#CSCanvas {
+  /*16:9
+    width: 100vw;
+    height: 56.25vw;
+    max-height: 100vh;
+    max-width: 177.77vh;
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);*/
+  width: 100vw;
+  height: 100vh;
+  z-index: -10;
+  pointer-events: none;
+  /*filter: invert(1);*/
+}
+
+.button {
+  background-color: rgba(100, 100, 100, 0.4);
+  border: 0.1em solid white;
+  border-radius: 5px;
+  color: white;
+  width: 30vw;
+  font-size: 1em;
+  position: absolute;
+  text-align: center;
+  padding: 1vw;
+}
+
+.button:hover {
+  background-color: rgba(100, 100, 100, 0.8);
+}
+
+#button1 {
+  top: 85vh;
+  left: 10vw;
+}
+
+#button2 {
+  top: 85vh;
+  right: 10vw;
+}
+
+#button3 {
+  top: 30vh;
+}
+
+#button4 {
+  top: 45vh;
+}
+
+#button5 {
+  top: 60vh;
+}
+
+.center {
+  left: 50vw;
+  transform: translateX(-50%);
+}
+
+.right {
+  right: 5vw;
+  transform: translateY(-20vh);
+}
+
+.visible {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 0.3s linear;
+}
+.hidden {
+  visibility: hidden;
+  opacity: 0;
+  transition: visibility 0s 0.3s, opacity 0.3s linear;
+}

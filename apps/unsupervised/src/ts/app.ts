@@ -121,14 +121,14 @@ class App {
       show("button3", "button4", "button5");
       movecenter("button3", "button4", "button5");
 
-      clearInterval(this.guesser);
+      this.levels[this.level].network!.stop();
     }
 
     if (m === "user") {
       hide("button3", "button4", "button5", "cImgContainer");
       show("button1", "button2", "infoLevel");
 
-      clearInterval(this.guesser);
+      this.levels[this.level].network!.stop();
     }
 
     if (m === "computer") {
@@ -139,10 +139,7 @@ class App {
       this.levels[this.level].network!.resetWeights();
       this.levels[this.level].network!.resethistory();
 
-      this.guesser = setInterval(
-        () => this.levels[this.level].network!.makeComputerGuess(),
-        1000
-      );
+      this.levels[this.level].network!.run();
     }
   }
 

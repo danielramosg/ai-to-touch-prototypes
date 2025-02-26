@@ -27,6 +27,9 @@ class Network {
   W: number[][];
   computing: boolean;
 
+  guesser: number;
+  trainer: number;
+
   net: Worker;
 
   constructor(level: Level, app: App) {
@@ -111,7 +114,7 @@ class Network {
           //if model is not getting better, restart it
           this.cnt += 1;
           if (this.cnt > 20 && this.app.nstrike < 4) {
-            console.log("Resetting");
+            console.log("Not getting better, resetting");
             this.resetWeights();
             this.cnt = 0;
           }
@@ -123,19 +126,30 @@ class Network {
             this.ys.shift();
           }
 
-          // train network with new data
-          this.net.postMessage({
-            command: "trainAndGetWeights",
-            xs: this.xs,
-            ys: this.ys,
-          });
-
           break;
 
         case "getWeights":
           this.W = e.data.W;
           break;
       }
+    });
+  }
+
+  run() {
+    this.guesser = setInterval(() => this.makeComputerGuess(), 1000);
+    this.trainer = setInterval(() => this.trainNetwork(), 100);
+  }
+
+  stop() {
+    clearInterval(this.guesser);
+    clearInterval(this.trainer);
+  }
+
+  trainNetwork() {
+    this.net.postMessage({
+      command: "trainAndGetWeights",
+      xs: this.xs,
+      ys: this.ys,
     });
   }
 

@@ -63,6 +63,8 @@ const resetWeights = () => {
   });
 };
 
+let computing: boolean = false;
+
 /* Communication with main program */
 
 self.onmessage = (e) => {
@@ -88,13 +90,19 @@ self.onmessage = (e) => {
 
     case "trainAndGetWeights":
       // console.log(`Training network`);
-
-      train(e.data.xs, e.data.ys)
-        .then(() => getWeights())
-        .then((d) => {
-          // console.log(`Sending weights`);
-          self.postMessage({ type: "getWeights", W: d });
-        });
+      if (!computing) {
+        // console.log("computing");
+        computing = true;
+        train(e.data.xs, e.data.ys)
+          .then(() => getWeights())
+          .then((d) => {
+            // console.log(`Sending weights`);
+            self.postMessage({ type: "getWeights", W: d });
+            computing = false;
+          });
+      } else {
+        // console.log("busy...");
+      }
       break;
 
     case "resetWeights":

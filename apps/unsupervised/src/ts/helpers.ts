@@ -62,4 +62,7 @@ const distVec = (u: number[], v: number[]) => {
   return Math.sqrt(normSquare);
 };
 
-export { ordinal, cardinal, gaussianRandom, hslToRgb, distVec };
+const baseVector = (ind: number, len: number) =>
+  new Array(len).fill(0).map((e, i) => (i === ind ? 1 : 0));
+
+export { ordinal, cardinal, gaussianRandom, hslToRgb, distVec, baseVector };

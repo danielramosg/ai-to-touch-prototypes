@@ -18,14 +18,16 @@ class App {
   level: number;
   levels: Level[];
 
-  net;
-  guesser;
+  net: Network;
+  guesser: number;
 
-  mainCanvas;
+  mainCanvas: HTMLCanvasElement;
 
-  constructor(levels) {
+  constructor(levels: Level[]) {
     this.levels = levels;
-    this.mainCanvas = document.getElementById("mainCanvas");
+    this.mainCanvas = document.getElementById(
+      "mainCanvas"
+    ) as HTMLCanvasElement;
 
     // State
     this.nstrike = 0;
@@ -35,7 +37,11 @@ class App {
     this.mode = "user"; // "menu" || "user" || "computer"
     this.level = 1; // 1 || 2 || 3   //TO DO: this parameter should be passed by url
 
-    this.net = new Network(this.levels, this);
+    this.levels.forEach((lev) => {
+      lev.network = new Network(lev, this);
+    });
+
+    // this.net = new Network(this.levels, this);
     this.setLevel(1);
 
     document.getElementById("button1")!.onclick = () => this.click(0);
@@ -47,7 +53,7 @@ class App {
   }
 
   /** Handler for the click event on button1 and button2.*/
-  click(ans) {
+  click(ans: number) {
     hide("button1", "button2");
     const x = this.getX(performance.now() / 1000);
     this.answer(x) === ans ? this.correct() : this.incorrect();
@@ -108,7 +114,7 @@ class App {
     this.updateInfoLevel();
   }
 
-  setMode(m) {
+  setMode(m: "user" | "computer" | "menu") {
     this.mode = m;
     if (m === "menu") {
       hide("button1", "button2", "button3", "cImgContainer", "infoLevel");
@@ -130,22 +136,23 @@ class App {
       show("button3", "button4", "cImgContainer", "infoLevel");
       moveright("button3", "button4");
 
-      this.net.resetWeights();
-      this.net.resethistory();
+      this.levels[this.level].network!.resetWeights();
+      this.levels[this.level].network!.resethistory();
+
       this.guesser = setInterval(
-        () => this.net.makeComputerGuess(this.level),
+        () => this.levels[this.level].network!.makeComputerGuess(),
         1000
       );
     }
   }
 
-  setLevel(l) {
+  setLevel(l: number) {
     this.level = l;
 
     setButtonLabels(this.levels[this.level].yLabels);
     this.resetStats();
     this.updateInfoLevel();
-    this.net.resethistory();
+    this.levels[l].network!.resethistory();
   }
 
   updateInfoLevel() {
@@ -170,7 +177,7 @@ class App {
   }
 
   /** Get a new data point */
-  getX(seed) {
+  getX(seed: number) {
     return this.levels[this.level].getX(seed);
   }
 
@@ -183,7 +190,7 @@ class App {
   /** Draw the case given by parameters x
    * @param cnv canvas to draw on
    * @param x parameters of the case */
-  drawIt(cnv, x) {
+  drawIt(cnv: HTMLCanvasElement, x: number[]) {
     return this.levels[this.level].draw(cnv, x);
   }
 
@@ -193,7 +200,8 @@ class App {
         this.drawIt(this.mainCanvas, this.getX(performance.now() / 1000));
       if (this.mode === "menu")
         this.drawIt(this.mainCanvas, this.getX(performance.now() / 1000));
-      if (this.mode === "computer") this.net.drawNetwork(this.level);
+      if (this.mode === "computer")
+        this.levels[this.level].network!.drawNetwork();
       requestAnimationFrame(mainAnimation);
     };
     mainAnimation();

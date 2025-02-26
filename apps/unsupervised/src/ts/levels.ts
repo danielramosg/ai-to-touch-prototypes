@@ -1,15 +1,19 @@
 import { distVec, hslToRgb, gaussianRandom } from "./helpers.js";
+import { Network } from "./network.js";
 
 type Level = {
   xLabels: string[];
   yLabels: string[];
   getX: (seed: number) => number[];
-  answer: (x: number[]) => number; // returns the index of the true answer in labelsYlevelN
+  answer: (x: number[]) => number; // returns the index of the true answer in yLabels
   draw: (cnv: HTMLCanvasElement, x: number[]) => void;
   _state?: any;
+  N: number[]; // shape of the (sequential) neural network.
+  network?: Network;
 };
 
 const level0: Level = {
+  N: [4, 6, 2],
   xLabels: [],
   yLabels: [],
   getX: (t) => [0, 0, 0, 0],
@@ -21,6 +25,7 @@ const level0: Level = {
  *  A circle blue or red
  */
 const level1: Level = {
+  N: [4, 6, 2],
   xLabels: ["color (red)", "color (green)", "color (blue)", "size"],
   yLabels: ["biru", "merah"], // blue red in Indonesian
   //   stats: [0, 0], // to check if sampling is uniform
@@ -60,6 +65,7 @@ const level1: Level = {
  *  Is the green circle the one on the right or on the left?
  */
 const level2: Level = {
+  N: [4, 6, 2],
   xLabels: ["x purple", "y purple", "x green", "y green"],
   yLabels: ["kiri", "kanan"], // left right in Indonesian
   //   stats: [0, 0], // to check if sampling is uniform
@@ -127,6 +133,7 @@ const level2: Level = {
  *  Is the number of circles odd or even?
  */
 const level3: Level = {
+  N: [4, 6, 2],
   xLabels: ["number", "rotation", "size", "color"],
   yLabels: ["genap", "gasal"], // even odd in Indonesian
   //   stats: [0, 0, 0, 0], // to check if sampling is uniform

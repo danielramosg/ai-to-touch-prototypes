@@ -1,5 +1,7 @@
+import { App } from "./app.ts";
+import { baseVector } from "./helpers.ts";
 import { Level } from "./levels.ts";
-import { train, predict, getWeights, resetWeights } from "./tf-helpers.ts";
+// import { train, predict, getWeights, resetWeights } from "./tf-helpers.ts";
 
 type historyItem = {
   container: HTMLDivElement; // container
@@ -14,8 +16,8 @@ const pos = (N: number[], k: number, j: number) => [
 ];
 
 class Network {
-  levels: Level[];
-  app: any;
+  level: Level;
+  app: App;
   cimgcnt: number;
   cnt: number;
   cImg: historyItem[];
@@ -25,17 +27,17 @@ class Network {
   W: number[][];
   computing: boolean;
 
-  //   nets;
+  net: Worker;
 
-  constructor(levels: Level[], app: any) {
-    this.levels = levels;
+  constructor(level: Level, app: App) {
+    this.level = level;
     this.app = app;
 
     this.cimgcnt = 0;
 
     /* Neural Network (nn) */
     /** Number of neurons on each layer */
-    this.N = [4, 6, 2];
+    this.N = this.level.N;
 
     /** Weights & biases */
     this.W = [
@@ -49,10 +51,11 @@ class Network {
     this.xs = [];
     this.ys = [];
 
-    // this.nets = levels.map(() => new Worker("./nn-worker.js")); //array of workers, one per level.
-    // this.nets.forEach((net) => {
-    //   net.postMessage({ command: "create", N: [4, 6, 2] });
-    // });
+    this.net = new Worker(new URL("./nn-worker.ts", import.meta.url), {
+      type: "module",
+    });
+
+    this.net.postMessage({ command: "create", N: this.N });
 
     /** Array of cImg items.
      * The last five data points in the computer-generated
@@ -71,11 +74,75 @@ class Network {
       );
       return { container: item, cnv: cnv, txt: txt };
     });
+
+    // Listeners for the web worker
+    this.net.addEventListener("message", (e) => {
+      // console.log("Received message from worker");
+      switch (e.data.type) {
+        case "prediction":
+          // draw the guess
+          const x = e.data.xs[0] as number[];
+          const y = e.data.ys[0] as number[];
+
+          const guess = y.reduce(
+            (iMax, x, i, arr) => (x > arr[iMax] ? i : iMax),
+            0
+          ); // find index of max
+
+          let guessLabel = this.level.yLabels[guess];
+
+          if (guess === this.level.answer(x)) {
+            guessLabel = guessLabel.concat(` ✔`);
+            this.app.correct();
+          } else {
+            guessLabel = guessLabel.concat(` ✗`);
+            this.app.incorrect();
+          }
+
+          this.level.draw(this.cImg[this.cimgcnt].cnv, x);
+          this.cImg[this.cimgcnt].txt.innerHTML = guessLabel;
+
+          this.animateHistoryItem(this.cImg[this.cimgcnt]);
+
+          // add the datum to the training data
+          this.xs.push(x);
+          this.ys.push(baseVector(this.level.answer(x), y.length));
+
+          //if model is not getting better, restart it
+          this.cnt += 1;
+          if (this.cnt > 20 && this.app.nstrike < 4) {
+            console.log("Resetting");
+            this.resetWeights();
+            this.cnt = 0;
+          }
+
+          // cut away too old answers
+          if (this.xs.length > 32) {
+            console.log("Cutting data");
+            this.xs.shift();
+            this.ys.shift();
+          }
+
+          // train network with new data
+          this.net.postMessage({
+            command: "trainAndGetWeights",
+            xs: this.xs,
+            ys: this.ys,
+          });
+
+          break;
+
+        case "getWeights":
+          this.W = e.data.W;
+          break;
+      }
+    });
   }
 
   resetWeights() {
-    resetWeights();
+    this.net.postMessage({ command: "resetWeights" });
   }
+
   /** Reset Neural Network and history of saved observations */
   resethistory() {
     this.cimgcnt = 0;
@@ -87,7 +154,7 @@ class Network {
   }
 
   animateHistoryItem(item: historyItem) {
-    console.log("animating: ", item);
+    // console.log("animating: ", item);
     item.container.style.left = "-50%";
     item.container.style.opacity = "1";
     const timer0 = performance.now();
@@ -104,88 +171,24 @@ class Network {
         item.container.style.opacity = "0";
       }
     };
-
     animation();
   }
 
-  /** Make guess, act consequently (correct/incorrect), add training data, and train network.
-   * @param l index of the level
-   */
-  makeComputerGuess(l: number) {
+  /** Make guess */
+  makeComputerGuess() {
     this.cimgcnt = (this.cimgcnt + 1) % 8;
-
     // Get new datum X from random seed
-    const x = this.levels[l].getX(1000 * Math.random());
-
+    const x = this.level.getX(1000 * Math.random());
     //make some guess for the datum based on nn
-    predict([x]).then((ans) => {
-      // then draw that guess
-      const y = ans[0];
-
-      const guess = y[0] > 0.5 ? 0 : 1;
-      let guessLabel = this.levels[l].yLabels[guess];
-
-      if (guess === this.levels[l].answer(x)) {
-        guessLabel = guessLabel.concat(` ✔`);
-        this.app.correct();
-      } else {
-        guessLabel = guessLabel.concat(` ✗`);
-        this.app.incorrect();
-      }
-
-      this.levels[l].draw(this.cImg[this.cimgcnt].cnv, x);
-      this.cImg[this.cimgcnt].txt.innerHTML = guessLabel;
-
-      this.animateHistoryItem(this.cImg[this.cimgcnt]);
-
-      // and add the datum to the training data
-      this.xs.push(x);
-      this.ys.push(this.levels[l].answer(x) === 0 ? [1, 0] : [0, 1]);
-
-      // if model is not getting better, restart it
-      this.cnt += 1;
-      if (this.cnt > 20 && this.app.nstrike < 4) {
-        console.log("Resetting");
-        this.resetWeights();
-        this.cnt = 0;
-      }
-
-      // cut away too old answers
-      if (this.xs.length > 32) {
-        console.log("Cutting data");
-        this.xs.shift();
-        this.ys.shift();
-      }
-
-      // resetWeights();
-      // getWeights().then((d) => {
-      //   W = d;
-      //   console.log(W);
-      // });
-
-      // console.log(W);
-      if (!this.computing && this.xs.length > 1) {
-        this.computing = true;
-        console.log("computing");
-
-        train(this.xs, this.ys)
-          .then(() => getWeights())
-          .then((d) => {
-            this.W = d as number[][];
-            this.computing = false;
-            console.log("ended computing");
-            // window.W = this.W;
-          });
-      }
-    });
+    this.net.postMessage({ command: "predict", xs: [x] });
   }
 
   /** Draw the neural network diagram */
-  drawNetwork(l: number) {
+  drawNetwork() {
     const N = this.N;
     const W = this.W;
-    const xLabels = this.levels[l].xLabels;
-    const yLabels = this.levels[l].yLabels;
+    const xLabels = this.level.xLabels;
+    const yLabels = this.level.yLabels;
     const cnv = document.getElementById("mainCanvas") as HTMLCanvasElement;
     const ctx = cnv.getContext("2d") as CanvasRenderingContext2D;
     ctx.clearRect(0, 0, 800, 500);

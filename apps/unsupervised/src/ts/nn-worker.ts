@@ -1,13 +1,19 @@
 // https://js.tensorflow.org/api/latest/
-// import * as tf from "@tensorflow/tfjs";
+import * as tf from "@tensorflow/tfjs";
 // to do: use import here and remove the script in the html file. Use Parcel to package
 // note: uncomment the import to get VS Code function documentation
 
-importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs");
+// importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs");
 
 /* TF helpers */
 
-const create = (N) => {
+declare global {
+  interface WindowOrWorkerGlobalScope {
+    model: tf.Sequential;
+  }
+}
+
+const create = (N: number[]) => {
   self.model = tf.sequential({
     layers: [
       tf.layers.dense({
@@ -33,7 +39,7 @@ const create = (N) => {
   });
 };
 
-const train = (xs, ys) =>
+const train = (xs: number[][], ys: number[][]) =>
   self.model.fit(
     tf.tensor2d(xs, [xs.length, 4]),
     tf.tensor2d(ys, [ys.length, 2]),
@@ -44,17 +50,24 @@ const train = (xs, ys) =>
     }
   );
 
-const predict = (xs) =>
-  self.model.predict(tf.tensor2d(xs, [xs.length, 4])).array();
+const predict = (xs: number[][]) =>
+  (self.model.predict(tf.tensor2d(xs, [xs.length, 4])) as tf.Tensor).array();
 
 const getWeights = () =>
   Promise.all([0, 1, 2, 3].map((k) => model.getWeights()[k].array()));
 
+const resetWeights = () => {
+  self.model.weights.forEach((w) => {
+    const newVals = tf.randomNormal(w.shape as number[]);
+    w.write(newVals);
+  });
+};
+
 /* Communication with main program */
 
 self.onmessage = (e) => {
-  console.log("Message received from main program");
-  console.log(e);
+  // console.log("Message received from main program");
+  // console.log(e);
 
   switch (e.data.command) {
     case "say":
@@ -62,27 +75,31 @@ self.onmessage = (e) => {
       break;
 
     case "create":
-      console.log(`Creating model with shape ${e.data.N}`);
-
+      // console.log(`Creating model with shape ${e.data.N}`);
       create(e.data.N);
       break;
 
     case "predict":
-      console.log(`Predicting for input ${e.data.xs}`);
+      // console.log(`Predicting for input ${e.data.xs}`);
       predict(e.data.xs).then((d) => {
-        self.postMessage({ type: "prediction", ys: d });
+        self.postMessage({ type: "prediction", xs: e.data.xs, ys: d });
       });
       break;
 
     case "trainAndGetWeights":
-      console.log(`Training network ${e.data.N}`);
+      // console.log(`Training network`);
 
       train(e.data.xs, e.data.ys)
         .then(() => getWeights())
         .then((d) => {
-          console.log(`Sending weights`);
+          // console.log(`Sending weights`);
           self.postMessage({ type: "getWeights", W: d });
         });
+      break;
+
+    case "resetWeights":
+      console.log("Resetting weights");
+      resetWeights();
       break;
   }
   //   self.postMessage("Message sent from the worker");

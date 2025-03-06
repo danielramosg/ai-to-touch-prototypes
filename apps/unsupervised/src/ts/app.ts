@@ -168,6 +168,7 @@ class App {
   }
 
   nextlevel() {
+    this.levels[this.level].network!.stop();
     this.level = (this.level % 3) + 1;
     this.setMode("user");
     this.setLevel(this.level);

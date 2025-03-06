@@ -2,6 +2,21 @@ function setButtonLabels(labels: string[]) {
   document.getElementById("button1")!.innerHTML = labels[0];
   document.getElementById("button2")!.innerHTML = labels[1];
 }
+
+const hideAnsBtns = () => {
+  document.querySelectorAll(".ansBtn").forEach((el) => {
+    el.classList.remove("visible");
+    el.classList.add("hidden");
+  });
+};
+
+const showAnsBtns = () => {
+  document.querySelectorAll(".ansBtn").forEach((el) => {
+    el.classList.remove("hidden");
+    el.classList.add("visible");
+  });
+};
+
 function hide(...l: string[]) {
   for (const k of l) {
     document.getElementById(k)!.classList.remove("visible");
@@ -30,4 +45,12 @@ function moveright(...l: string[]) {
   }
 }
 
-export { setButtonLabels, hide, show, movecenter, moveright };
+export {
+  setButtonLabels,
+  hide,
+  show,
+  hideAnsBtns,
+  showAnsBtns,
+  movecenter,
+  moveright,
+};

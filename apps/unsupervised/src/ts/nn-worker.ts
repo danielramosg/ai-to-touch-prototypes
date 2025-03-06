@@ -10,10 +10,12 @@ import * as tf from "@tensorflow/tfjs";
 declare global {
   interface WindowOrWorkerGlobalScope {
     model: tf.Sequential;
+    N: number[];
   }
 }
 
 const create = (N: number[]) => {
+  self.N = N;
   self.model = tf.sequential({
     layers: [
       tf.layers.dense({
@@ -41,8 +43,8 @@ const create = (N: number[]) => {
 
 const train = (xs: number[][], ys: number[][]) =>
   self.model.fit(
-    tf.tensor2d(xs, [xs.length, 4]),
-    tf.tensor2d(ys, [ys.length, 2]),
+    tf.tensor2d(xs, [xs.length, self.N[0]]),
+    tf.tensor2d(ys, [ys.length, self.N[2]]),
     {
       //batchSize: 32,
       shuffle: true,
@@ -51,7 +53,9 @@ const train = (xs: number[][], ys: number[][]) =>
   );
 
 const predict = (xs: number[][]) =>
-  (self.model.predict(tf.tensor2d(xs, [xs.length, 4])) as tf.Tensor).array();
+  (
+    self.model.predict(tf.tensor2d(xs, [xs.length, self.N[0]])) as tf.Tensor
+  ).array();
 
 const getWeights = () =>
   Promise.all([0, 1, 2, 3].map((k) => model.getWeights()[k].array()));

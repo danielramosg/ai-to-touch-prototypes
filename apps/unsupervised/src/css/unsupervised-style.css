@@ -92,7 +92,27 @@ body {
   background-color: rgba(100, 100, 100, 0.8);
 }
 
-#button1 {
+#ansBtnsContainer {
+  top: 85vh;
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  position: absolute;
+}
+
+.ansBtn {
+  background-color: rgba(100, 100, 100, 0.4);
+  border: 0.1em solid white;
+  border-radius: 5px;
+  color: white;
+  width: 30vw;
+  font-size: 1em;
+  text-align: center;
+  padding: 1vw;
+  margin: 10px;
+}
+
+/* #button1 {
   top: 85vh;
   left: 10vw;
 }
@@ -100,7 +120,7 @@ body {
 #button2 {
   top: 85vh;
   right: 10vw;
-}
+} */
 
 #button3 {
   top: 30vh;

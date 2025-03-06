@@ -5,6 +5,8 @@ import {
   show,
   movecenter,
   moveright,
+  hideAnsBtns,
+  showAnsBtns,
 } from "./ui-helpers.ts";
 import { Network } from "./network.ts";
 import type { Level } from "./levels.ts";
@@ -44,23 +46,37 @@ class App {
     // this.net = new Network(this.levels, this);
     this.setLevel(1);
 
-    document.getElementById("button1")!.onclick = () => this.click(0);
-    document.getElementById("button2")!.onclick = () => this.click(1);
     document.getElementById("button3")!.onclick = () => this.restartLevel();
     document.getElementById("button4")!.onclick = () => this.nextlevel();
     document.getElementById("button5")!.onclick = () =>
       this.setMode("computer");
   }
 
-  /** Handler for the click event on button1 and button2.*/
+  /** Create answer buttons */
+  setAnsButtons() {
+    document.querySelectorAll(".ansBtn").forEach((el) => el.remove());
+    const container = document.querySelector(
+      "#ansBtnsContainer"
+    ) as HTMLDivElement;
+    this.levels[this.level].yLabels.forEach((yLabel, i) => {
+      const ansBtn = document.createElement("div");
+      ansBtn.classList.add("visible");
+      ansBtn.classList.add("ansBtn");
+      ansBtn.innerHTML = yLabel;
+      ansBtn.onclick = () => this.click(i);
+      container.appendChild(ansBtn);
+    });
+  }
+
+  /** Handler for the click event on answer buttons.*/
   click(ans: number) {
-    hide("button1", "button2");
+    hideAnsBtns();
     const x = this.getX(performance.now() / 1000);
     this.answer(x) === ans ? this.correct() : this.incorrect();
     show("result");
     setTimeout(() => {
       hide("result");
-      if (this.mode === "user") show("button1", "button2");
+      if (this.mode === "user") showAnsBtns();
     }, 1000);
   }
 
@@ -117,7 +133,8 @@ class App {
   setMode(m: "user" | "computer" | "menu") {
     this.mode = m;
     if (m === "menu") {
-      hide("button1", "button2", "button3", "cImgContainer", "infoLevel");
+      hideAnsBtns();
+      hide("button3", "cImgContainer", "infoLevel");
       show("button3", "button4", "button5");
       movecenter("button3", "button4", "button5");
 
@@ -126,13 +143,15 @@ class App {
 
     if (m === "user") {
       hide("button3", "button4", "button5", "cImgContainer");
-      show("button1", "button2", "infoLevel");
+      showAnsBtns();
+      show("infoLevel");
 
       this.levels[this.level].network!.stop();
     }
 
     if (m === "computer") {
-      hide("button1", "button2", "button5");
+      hideAnsBtns();
+      hide("button5");
       show("button3", "button4", "cImgContainer", "infoLevel");
       moveright("button3", "button4");
 
@@ -146,7 +165,8 @@ class App {
   setLevel(l: number) {
     this.level = l;
 
-    setButtonLabels(this.levels[this.level].yLabels);
+    this.setAnsButtons();
+    // setButtonLabels(this.levels[this.level].yLabels);
     this.resetStats();
     this.updateInfoLevel();
     this.levels[l].network!.resethistory();
@@ -169,7 +189,7 @@ class App {
 
   nextlevel() {
     this.levels[this.level].network!.stop();
-    this.level = (this.level % 3) + 1;
+    this.level = (this.level % (this.levels.length - 1)) + 1;
     this.setMode("user");
     this.setLevel(this.level);
   }

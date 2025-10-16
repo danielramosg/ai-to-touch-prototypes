@@ -44,7 +44,7 @@ class App {
     });
 
     // this.net = new Network(this.levels, this);
-    this.setLevel(1);
+    // this.setLevel(1);
 
     document.getElementById("button3")!.onclick = () => this.restartLevel();
     document.getElementById("button4")!.onclick = () => this.nextlevel();

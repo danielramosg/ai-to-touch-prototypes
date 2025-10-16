@@ -16,9 +16,13 @@ const level0: Level = {
   N: [4, 6, 2],
   xLabels: [],
   yLabels: [],
-  getX: (t) => [0, 0, 0, 0],
-  answer: (x) => 0,
-  draw: (cnv, x) => {},
+  getX(t) {
+    return [0, 0, 0, 0];
+  },
+  answer(x) {
+    return 0;
+  },
+  draw(cnv, x) {},
 };
 
 /** Level 1.
@@ -200,7 +204,82 @@ const level3: Level = {
   },
 };
 
-const levels = [level0, level1, level2, level3];
+/** Level 4.
+ *
+ */
+const level4: Level = {
+  N: [5, 6, 3],
+  xLabels: [
+    "tie", // 0=none, 1=red, 2=blue, 3=fantasy
+    "jacket", // 0=none, 1=blue, 2=brown,
+    "trousers", // 1= blue, 2= brown
+    "hat", // 0=no, 1=yes
+    "briefcase", // float, size
+  ],
+  yLabels: ["teaching", "bussiness", "free day"],
+
+  _state: {
+    tie: 0,
+    jacket: 0,
+    trousers: 0,
+    hat: 0,
+    briefcase: 0,
+    lastT: 0,
+  },
+
+  getX(t) {
+    if (Math.floor(t / 2) !== Math.floor(this._state.lastT / 2)) {
+      // const ans = this.yLabels[Math.floor(3 * Math.random())];
+      // switch (ans) {
+      //   case "teaching":
+      //     if (Math.random() < 0.5) {
+      //     }
+      this._state.tie = Math.floor(4 * Math.random());
+      this._state.jacket = Math.floor(3 * Math.random());
+      this._state.trousers = Math.floor(2 * Math.random()) + 1;
+      this._state.hat = Math.floor(2 * Math.random());
+      this._state.briefcase = 2 * Math.random();
+      this._state.lastT = t;
+    }
+
+    return [
+      this._state.tie,
+      this._state.jacket,
+      this._state.trousers,
+      this._state.hat,
+      this._state.briefcase,
+    ];
+  },
+
+  answer(x) {
+    const [tie, jacket, trousers, hat, briefcase] = x;
+
+    if (jacket === trousers && hat && tie && tie !== jacket) {
+      return 1;
+    }
+    if (briefcase > 1) {
+      return 0;
+    }
+    return 2;
+  },
+
+  draw(cnv, x) {
+    const ctx = cnv.getContext("2d") as CanvasRenderingContext2D;
+    ctx.clearRect(0, 0, 800, 500);
+    ctx.fillStyle = "white";
+    ctx.font = "1em Quicksand";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(`Imagine a picture of a professor`, 400, 100);
+    ctx.fillText(`with ${["no", "red", "blue"][x[0]]} tie`, 400, 150);
+    ctx.fillText(`with ${["no", "blue", "brown"][x[1]]} jacket`, 400, 200);
+    ctx.fillText(`with ${["", "blue", "brown"][x[2]]} trousers`, 400, 250);
+    ctx.fillText(`with ${["no", ""][x[3]]} hat`, 400, 300);
+    ctx.fillText(`with a ${x[4].toFixed(2)} kg briefcase`, 400, 350);
+  },
+};
+
+const levels = [level0, level1, level2, level3, level4];
 
 export type { Level };
 export { levels };

@@ -6,7 +6,7 @@ const app = new App(levels);
 
 window.app = app;
 
-app.setLevel(1);
+app.setLevel(4);
 app.setMode("user");
 app.updateInfoLevel();
 

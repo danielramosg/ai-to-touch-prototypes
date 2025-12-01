@@ -207,77 +207,195 @@ const level3: Level = {
 /** Level 4.
  *
  */
+
+let level4loaded = false;
+// Describe all the sprite image files (in /img)
+const spriteDefs = [
+  { name: "base", src: new URL("../img/004.png", import.meta.url).href },
+  { name: "tie", src: new URL("../img/002.png", import.meta.url).href },
+  { name: "jacket", src: new URL("../img/000.png", import.meta.url).href },
+  { name: "hat", src: new URL("../img/003.png", import.meta.url).href },
+  { name: "glasses", src: new URL("../img/001.png", import.meta.url).href },
+];
+
+/**
+ * Preload all sprite images into memory.
+ * Returns a Promise that resolves to an object: { player: Image, enemy: Image, ... }
+ */
+async function preloadSprites(
+  defs: { name: string; src: string }[]
+): Promise<{ [key: string]: HTMLImageElement }> {
+  const promises = defs.map((def) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve({ name: def.name, image: img });
+      img.onerror = () => reject(new Error("Failed to load " + def.src));
+      img.src = def.src;
+    });
+  });
+
+  const loaded = (await Promise.all(promises)) as {
+    name: string;
+    image: HTMLImageElement;
+  }[];
+  const sprites = {} as { [key: string]: HTMLImageElement };
+  for (const item of loaded) {
+    sprites[item.name] = item.image;
+  }
+  level4loaded = true;
+  return sprites;
+}
+
+let entities = []; // to be filled after preloading
+let sprites: { [key: string]: HTMLImageElement } = {}; // to be filled after preloading
+
+preloadSprites(spriteDefs)
+  .then((loadedSprites) => {
+    sprites = loadedSprites;
+
+    // Create entities that use the preloaded images
+    entities = [
+      {
+        id: "base",
+        image: sprites.base,
+        x: 0,
+        y: 0,
+        visible: true,
+      },
+      {
+        id: "tie",
+        image: sprites.tie,
+        x: 0,
+        y: 0,
+        visible: true,
+      },
+      {
+        id: "jacket",
+        image: sprites.jacket,
+        x: 0,
+        y: 0,
+        visible: true,
+      },
+      {
+        id: "hat",
+        image: sprites.hat,
+        x: 0,
+        y: 0,
+        visible: true,
+      },
+      {
+        id: "glasses",
+        image: sprites.glasses,
+        x: 0,
+        y: 0,
+        visible: true,
+      },
+    ];
+    console.log("Sprites preloaded and entities created.");
+  })
+  .catch((error) => {
+    console.error("Error preloading sprites:", error);
+  });
+
 const level4: Level = {
-  N: [5, 6, 3],
-  xLabels: [
-    "tie", // 0=none, 1=red, 2=blue, 3=fantasy
-    "jacket", // 0=none, 1=blue, 2=brown,
-    "trousers", // 1= blue, 2= brown
-    "hat", // 0=no, 1=yes
-    "briefcase", // float, size
-  ],
+  N: [4, 6, 3],
+  xLabels: ["tie", "jacket", "hat", "glasses"],
   yLabels: ["teaching", "bussiness", "free day"],
 
   _state: {
     tie: 0,
     jacket: 0,
-    trousers: 0,
     hat: 0,
-    briefcase: 0,
+    glasses: 0,
     lastT: 0,
   },
 
   getX(t) {
     if (Math.floor(t / 2) !== Math.floor(this._state.lastT / 2)) {
-      // const ans = this.yLabels[Math.floor(3 * Math.random())];
-      // switch (ans) {
-      //   case "teaching":
-      //     if (Math.random() < 0.5) {
-      //     }
-      this._state.tie = Math.floor(4 * Math.random());
-      this._state.jacket = Math.floor(3 * Math.random());
-      this._state.trousers = Math.floor(2 * Math.random()) + 1;
+      this._state.tie = Math.floor(2 * Math.random());
+      this._state.jacket = Math.floor(2 * Math.random());
       this._state.hat = Math.floor(2 * Math.random());
-      this._state.briefcase = 2 * Math.random();
+      this._state.glasses = Math.floor(2 * Math.random());
       this._state.lastT = t;
     }
 
     return [
       this._state.tie,
       this._state.jacket,
-      this._state.trousers,
       this._state.hat,
-      this._state.briefcase,
+      this._state.glasses,
     ];
   },
 
   answer(x) {
-    const [tie, jacket, trousers, hat, briefcase] = x;
+    const [tie, jacket, hat, glasses] = x;
 
-    if (jacket === trousers && hat && tie && tie !== jacket) {
+    if (jacket && hat && tie) {
       return 1;
     }
-    if (briefcase > 1) {
+    if (glasses) {
       return 0;
     }
     return 2;
   },
 
   draw(cnv, x) {
+    if (!level4loaded) return;
+
     const ctx = cnv.getContext("2d") as CanvasRenderingContext2D;
-    ctx.clearRect(0, 0, 800, 500);
-    ctx.fillStyle = "white";
-    ctx.font = "1em Quicksand";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(`Imagine a picture of a professor`, 400, 100);
-    ctx.fillText(`with ${["no", "red", "blue"][x[0]]} tie`, 400, 150);
-    ctx.fillText(`with ${["no", "blue", "brown"][x[1]]} jacket`, 400, 200);
-    ctx.fillText(`with ${["", "blue", "brown"][x[2]]} trousers`, 400, 250);
-    ctx.fillText(`with ${["no", ""][x[3]]} hat`, 400, 300);
-    ctx.fillText(`with a ${x[4].toFixed(2)} kg briefcase`, 400, 350);
+    ctx.clearRect(0, 0, cnv.width, cnv.height);
+
+    const [tie, jacket, hat, glasses] = x;
+
+    const w = sprites.base.width;
+    const h = sprites.base.height;
+    const scale = Math.min(cnv.width / w, cnv.height / h);
+    ctx.setTransform(
+      scale,
+      0,
+      0,
+      scale,
+      (cnv.width - w * scale) / 2,
+      (cnv.height - h * scale) / 2
+    );
+
+    // Draw base
+    ctx.drawImage(sprites.base, 0, 0, w, h);
+
+    // Draw tie
+    if (tie) {
+      ctx.drawImage(sprites.tie, 0, 0, w, h);
+    }
+
+    // Draw jacket
+    if (jacket) {
+      ctx.drawImage(sprites.jacket, 0, 0, w, h);
+    }
+
+    // Draw hat
+    if (hat) {
+      ctx.drawImage(sprites.hat, 0, 0, w, h);
+    }
+
+    // Draw glasses
+    if (glasses) {
+      ctx.drawImage(sprites.glasses, 0, 0, w, h);
+    }
+
+    // ctx.fillStyle = "white";
+    // ctx.font = "1em Quicksand";
+    // ctx.textAlign = "center";
+    // ctx.textBaseline = "middle";
+    // ctx.fillText(`Imagine a picture of a professor`, 400, 100);
+    // ctx.fillText(`with ${["no", "red", "blue"][x[0]]} tie`, 400, 150);
+    // ctx.fillText(`with ${["no", "blue", "brown"][x[1]]} jacket`, 400, 200);
+    // ctx.fillText(`with ${["", "blue", "brown"][x[2]]} trousers`, 400, 250);
+    // ctx.fillText(`with ${["no", ""][x[3]]} hat`, 400, 300);
+    // ctx.fillText(`with a ${x[4].toFixed(2)} kg briefcase`, 400, 350);
   },
 };
+
+window.drawLevel4 = level4.draw.bind(level4);
 
 const levels = [level0, level1, level2, level3, level4];
 

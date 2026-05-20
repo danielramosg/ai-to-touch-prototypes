@@ -6,7 +6,10 @@ const app = new App(levels);
 
 window.app = app;
 
-app.setLevel(4);
+const params = new URLSearchParams(window.location.search);
+const level = parseInt(params.get("level") || "1");
+
+app.setLevel(level);
 app.setMode("user");
 app.updateInfoLevel();
 
